@@ -1,0 +1,396 @@
+/* eslint-disable */
+/**
+ * Generated `ComponentApi` utility.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import type { FunctionReference } from "convex/server";
+
+/**
+ * A utility for referencing a Convex component's exposed API.
+ *
+ * Useful when expecting a parameter like `components.myComponent`.
+ * Usage:
+ * ```ts
+ * async function myFunction(ctx: QueryCtx, component: ComponentApi) {
+ *   return ctx.runQuery(component.someFile.someQuery, { ...args });
+ * }
+ * ```
+ */
+export type ComponentApi<Name extends string | undefined = string | undefined> =
+  {
+    okrhub: {
+      getPendingSyncItems: FunctionReference<
+        "query",
+        "internal",
+        { limit?: number },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          attempts: number;
+          createdAt: number;
+          entityType: string;
+          errorMessage?: string;
+          externalId: string;
+          lastAttemptAt?: number;
+          payload: string;
+          status: string;
+        }>,
+        Name
+      >;
+      insertBatch: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          batch: {
+            companies?: Array<{
+              createdAt?: number;
+              externalId: string;
+              name: string;
+            }>;
+            indicatorForecasts?: Array<{
+              createdAt?: number;
+              date: number;
+              externalId: string;
+              indicatorExternalId: string;
+              value: number;
+            }>;
+            indicatorValues?: Array<{
+              createdAt?: number;
+              date: number;
+              externalId: string;
+              indicatorExternalId: string;
+              value: number;
+            }>;
+            indicators?: Array<{
+              assigneeExternalId?: string;
+              automationDescription?: string;
+              automationUrl?: string;
+              companyExternalId: string;
+              createdAt?: number;
+              description: string;
+              externalId: string;
+              forecastDate?: number;
+              isReverse?: boolean;
+              notes?: string;
+              periodicity:
+                | "weekly"
+                | "monthly"
+                | "quarterly"
+                | "semesterly"
+                | "yearly";
+              symbol: string;
+              type?: "OUTPUT" | "OUTCOME";
+            }>;
+            initiatives?: Array<{
+              assigneeExternalId: string;
+              createdAt?: number;
+              createdByExternalId: string;
+              description: string;
+              externalId: string;
+              externalUrl?: string;
+              finishedAt?: number;
+              isNew?: boolean;
+              notes?: string;
+              priority: "lowest" | "low" | "medium" | "high" | "highest";
+              riskExternalId?: string;
+              status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+              teamExternalId: string;
+              updatedAt?: number;
+            }>;
+            keyResults?: Array<{
+              createdAt?: number;
+              externalId: string;
+              forecastValue?: number;
+              impact?: number;
+              indicatorExternalId: string;
+              objectiveExternalId?: string;
+              targetValue?: number;
+              teamExternalId: string;
+              updatedAt?: number;
+              weight: number;
+            }>;
+            milestones?: Array<{
+              achievedAt?: number;
+              createdAt?: number;
+              description: string;
+              externalId: string;
+              forecastDate?: number;
+              indicatorExternalId: string;
+              status?:
+                | "ON_TIME"
+                | "OVERDUE"
+                | "ACHIEVED_ON_TIME"
+                | "ACHIEVED_LATE";
+              updatedAt?: number;
+              value: number;
+            }>;
+            objectives?: Array<{
+              createdAt?: number;
+              description: string;
+              externalId: string;
+              teamExternalId: string;
+              title: string;
+              updatedAt?: number;
+            }>;
+            risks?: Array<{
+              createdAt?: number;
+              description: string;
+              externalId: string;
+              indicatorExternalId?: string;
+              isRed?: boolean;
+              keyResultExternalId?: string;
+              priority: "lowest" | "low" | "medium" | "high" | "highest";
+              teamExternalId: string;
+              triggerValue?: number;
+              triggeredIfLower?: boolean;
+              useForecastAsTrigger?: boolean;
+            }>;
+            teams?: Array<{
+              companyExternalId: string;
+              createdAt?: number;
+              externalId: string;
+              name: string;
+            }>;
+            users?: Array<{
+              createdAt?: number;
+              email: string;
+              externalId: string;
+              name?: string;
+              surname?: string;
+            }>;
+          };
+        },
+        { errors: Array<string>; queueIds: Array<string>; success: boolean },
+        Name
+      >;
+      insertIndicator: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          indicator: {
+            assigneeExternalId?: string;
+            automationDescription?: string;
+            automationUrl?: string;
+            companyExternalId: string;
+            createdAt?: number;
+            description: string;
+            externalId: string;
+            forecastDate?: number;
+            isReverse?: boolean;
+            notes?: string;
+            periodicity:
+              | "weekly"
+              | "monthly"
+              | "quarterly"
+              | "semesterly"
+              | "yearly";
+            symbol: string;
+            type?: "OUTPUT" | "OUTCOME";
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertIndicatorValue: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          indicatorValue: {
+            createdAt?: number;
+            date: number;
+            externalId: string;
+            indicatorExternalId: string;
+            value: number;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertInitiative: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          initiative: {
+            assigneeExternalId: string;
+            createdAt?: number;
+            createdByExternalId: string;
+            description: string;
+            externalId: string;
+            externalUrl?: string;
+            finishedAt?: number;
+            isNew?: boolean;
+            notes?: string;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId?: string;
+            status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+            teamExternalId: string;
+            updatedAt?: number;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertKeyResult: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          keyResult: {
+            createdAt?: number;
+            externalId: string;
+            forecastValue?: number;
+            impact?: number;
+            indicatorExternalId: string;
+            objectiveExternalId?: string;
+            targetValue?: number;
+            teamExternalId: string;
+            updatedAt?: number;
+            weight: number;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertMilestone: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          milestone: {
+            achievedAt?: number;
+            createdAt?: number;
+            description: string;
+            externalId: string;
+            forecastDate?: number;
+            indicatorExternalId: string;
+            status?:
+              | "ON_TIME"
+              | "OVERDUE"
+              | "ACHIEVED_ON_TIME"
+              | "ACHIEVED_LATE";
+            updatedAt?: number;
+            value: number;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertObjective: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          objective: {
+            createdAt?: number;
+            description: string;
+            externalId: string;
+            teamExternalId: string;
+            title: string;
+            updatedAt?: number;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      insertRisk: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          risk: {
+            createdAt?: number;
+            description: string;
+            externalId: string;
+            indicatorExternalId?: string;
+            isRed?: boolean;
+            keyResultExternalId?: string;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            teamExternalId: string;
+            triggerValue?: number;
+            triggeredIfLower?: boolean;
+            useForecastAsTrigger?: boolean;
+          };
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      processSyncQueue: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; batchSize?: number; endpointUrl: string },
+        { failed: number; processed: number; succeeded: number },
+        Name
+      >;
+      sendBatchToLinkHub: FunctionReference<
+        "action",
+        "internal",
+        { apiKey: string; endpointUrl: string; payload: string },
+        {
+          errors: Array<string>;
+          results: Array<{
+            action?: "create" | "update";
+            entityType: string;
+            error?: string;
+            externalId: string;
+            linkHubId?: string;
+          }>;
+          success: boolean;
+        },
+        Name
+      >;
+      sendToLinkHub: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          endpointUrl: string;
+          entityType: string;
+          payload: string;
+        },
+        {
+          action?: "create" | "update";
+          error?: string;
+          externalId: string;
+          linkHubId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+    };
+  };
