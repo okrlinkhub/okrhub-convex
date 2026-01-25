@@ -69,3 +69,36 @@ async function getAuthUserId(ctx: { auth: Auth }): Promise<string> {
   const identity = await ctx.auth.getUserIdentity();
   return identity?.subject ?? "anonymous";
 }
+
+// ============================================================================
+// TEST ACTION - For testing sync without authentication
+// ============================================================================
+
+/**
+ * Test action to process sync queue without authentication.
+ * ⚠️ FOR DEVELOPMENT/TESTING ONLY - Remove in production!
+ */
+export const testProcessSyncQueue = action({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Get config from environment
+    const endpointUrl = process.env.LINKHUB_API_URL;
+    const apiKeyPrefix = process.env.LINKHUB_API_KEY_PREFIX;
+    const signingSecret = process.env.LINKHUB_SIGNING_SECRET;
+
+    if (!endpointUrl || !apiKeyPrefix || !signingSecret) {
+      throw new Error(
+        "Missing environment variables: LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, LINKHUB_SIGNING_SECRET"
+      );
+    }
+
+    return await ctx.runAction(components.okrhub.okrhub.processSyncQueue, {
+      endpointUrl,
+      apiKeyPrefix,
+      signingSecret,
+      batchSize: args.batchSize ?? 10,
+    });
+  },
+});
