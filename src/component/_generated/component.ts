@@ -353,14 +353,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       processSyncQueue: FunctionReference<
         "action",
         "internal",
-        { apiKey: string; batchSize?: number; endpointUrl: string },
+        {
+          apiKeyPrefix: string;
+          batchSize?: number;
+          endpointUrl: string;
+          signingSecret: string;
+        },
         { failed: number; processed: number; succeeded: number },
         Name
       >;
       sendBatchToLinkHub: FunctionReference<
         "action",
         "internal",
-        { apiKey: string; endpointUrl: string; payload: string },
+        {
+          apiKeyPrefix: string;
+          endpointUrl: string;
+          payload: string;
+          signingSecret: string;
+        },
         {
           errors: Array<string>;
           results: Array<{
@@ -378,10 +388,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "action",
         "internal",
         {
-          apiKey: string;
+          apiKeyPrefix: string;
           endpointUrl: string;
           entityType: string;
           payload: string;
+          signingSecret: string;
         },
         {
           action?: "create" | "update";

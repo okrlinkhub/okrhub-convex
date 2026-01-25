@@ -42,13 +42,16 @@ import {
 
 /**
  * Creates HMAC-SHA256 signature for payload authentication
+ * 
+ * SECURITY NOTE: Uses the signing secret (not the API key) to create
+ * cryptographically consistent signatures that the server can verify.
  */
 async function createHmacSignature(
   payload: string,
-  apiKey: string
+  signingSecret: string
 ): Promise<string> {
   const encoder = new TextEncoder();
-  const keyData = encoder.encode(apiKey);
+  const keyData = encoder.encode(signingSecret);
   const messageData = encoder.encode(payload);
 
   const cryptoKey = await crypto.subtle.importKey(
@@ -65,17 +68,19 @@ async function createHmacSignature(
 }
 
 /**
- * Creates request headers with HMAC signature and version
+ * Creates request headers with HMAC signature, version, and key prefix
  */
 async function createRequestHeaders(
   payload: string,
-  apiKey: string
+  apiKeyPrefix: string,
+  signingSecret: string
 ): Promise<Headers> {
-  const signature = await createHmacSignature(payload, apiKey);
+  const signature = await createHmacSignature(payload, signingSecret);
 
   return new Headers({
     "Content-Type": "application/json",
     "X-OKRHub-Version": OKRHUB_VERSION,
+    "X-OKRHub-Key-Prefix": apiKeyPrefix,
     "X-OKRHub-Signature": signature,
   });
 }
@@ -130,7 +135,8 @@ function assertValidExternalId(externalId: string, fieldName = "externalId") {
 export const sendToLinkHub = action({
   args: {
     endpointUrl: v.string(),
-    apiKey: v.string(),
+    apiKeyPrefix: v.string(),
+    signingSecret: v.string(),
     entityType: v.string(),
     payload: v.string(), // JSON stringified payload
   },
@@ -142,10 +148,10 @@ export const sendToLinkHub = action({
     error: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
-    const { endpointUrl, apiKey, entityType, payload } = args;
+    const { endpointUrl, apiKeyPrefix, signingSecret, entityType, payload } = args;
 
     try {
-      const headers = await createRequestHeaders(payload, apiKey);
+      const headers = await createRequestHeaders(payload, apiKeyPrefix, signingSecret);
       const url = `${endpointUrl}/ingest/okr/v1/${entityType}`;
 
       const response = await fetch(url, {
@@ -186,7 +192,8 @@ export const sendToLinkHub = action({
 export const sendBatchToLinkHub = action({
   args: {
     endpointUrl: v.string(),
-    apiKey: v.string(),
+    apiKeyPrefix: v.string(),
+    signingSecret: v.string(),
     payload: v.string(), // JSON stringified BatchPayload
   },
   returns: v.object({
@@ -203,10 +210,10 @@ export const sendBatchToLinkHub = action({
     errors: v.array(v.string()),
   }),
   handler: async (ctx, args) => {
-    const { endpointUrl, apiKey, payload } = args;
+    const { endpointUrl, apiKeyPrefix, signingSecret, payload } = args;
 
     try {
-      const headers = await createRequestHeaders(payload, apiKey);
+      const headers = await createRequestHeaders(payload, apiKeyPrefix, signingSecret);
       const url = `${endpointUrl}/ingest/okr/v1/batch`;
 
       const response = await fetch(url, {
@@ -756,7 +763,8 @@ export const insertBatch = mutation({
 export const processSyncQueue = action({
   args: {
     endpointUrl: v.string(),
-    apiKey: v.string(),
+    apiKeyPrefix: v.string(),
+    signingSecret: v.string(),
     batchSize: v.optional(v.number()),
   },
   returns: v.object({
@@ -765,7 +773,7 @@ export const processSyncQueue = action({
     failed: v.number(),
   }),
   handler: async (ctx, args) => {
-    const { endpointUrl, apiKey, batchSize = 10 } = args;
+    const { endpointUrl, apiKeyPrefix, signingSecret, batchSize = 10 } = args;
 
     // Get pending items
     const pendingItems = await ctx.runQuery(api.okrhub.getPendingSyncItems, {
@@ -788,7 +796,8 @@ export const processSyncQueue = action({
       // Send to LinkHub
       const result = await ctx.runAction(api.okrhub.sendToLinkHub, {
         endpointUrl,
-        apiKey,
+        apiKeyPrefix,
+        signingSecret,
         entityType: item.entityType,
         payload: item.payload,
       });

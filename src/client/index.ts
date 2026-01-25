@@ -80,9 +80,17 @@ interface OKRHubConfig {
   endpointUrl: string;
 
   /**
-   * API key for HMAC authentication
+   * API key prefix for identifying the key (e.g., "okr_abc12345")
+   * Used in X-OKRHub-Key-Prefix header
    */
-  apiKey: string;
+  apiKeyPrefix: string;
+
+  /**
+   * Signing secret for HMAC authentication (e.g., "whsec_...")
+   * This is the dedicated secret shown once when creating an API key.
+   * Used to sign request payloads.
+   */
+  signingSecret: string;
 }
 
 /**
@@ -119,17 +127,18 @@ function getConfig(options?: ExposeApiOptions): OKRHubConfig {
   }
 
   const endpointUrl = process.env.LINKHUB_API_URL;
-  const apiKey = process.env.LINKHUB_API_KEY;
+  const apiKeyPrefix = process.env.LINKHUB_API_KEY_PREFIX;
+  const signingSecret = process.env.LINKHUB_SIGNING_SECRET;
 
-  if (!endpointUrl || !apiKey) {
+  if (!endpointUrl || !apiKeyPrefix || !signingSecret) {
     throw new Error(
       "OKRHub configuration missing. " +
-        "Set LINKHUB_API_URL and LINKHUB_API_KEY environment variables, " +
+        "Set LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, and LINKHUB_SIGNING_SECRET environment variables, " +
         "or pass config in exposeApi options."
     );
   }
 
-  return { endpointUrl, apiKey };
+  return { endpointUrl, apiKeyPrefix, signingSecret };
 }
 
 /**
@@ -388,7 +397,8 @@ export function exposeApi(
 
         return await ctx.runAction(component.okrhub.processSyncQueue, {
           endpointUrl: config.endpointUrl,
-          apiKey: config.apiKey,
+          apiKeyPrefix: config.apiKeyPrefix,
+          signingSecret: config.signingSecret,
           batchSize: args.batchSize,
         });
       },
