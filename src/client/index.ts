@@ -109,7 +109,7 @@ interface ExposeApiOptions {
   auth?: (
     ctx: { auth: Auth },
     operation: {
-      type: "insert" | "sync";
+      type: "insert" | "update" | "sync";
       entityType: string;
     }
   ) => Promise<void>;
@@ -635,7 +635,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "objective" });
+          await options.auth(ctx, { type: "update", entityType: "objective" });
         }
         return await ctx.runMutation(component.okrhub.updateObjective, args);
       },
@@ -653,7 +653,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "keyResult" });
+          await options.auth(ctx, { type: "update", entityType: "keyResult" });
         }
         return await ctx.runMutation(component.okrhub.updateKeyResult, args);
       },
@@ -684,7 +684,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "risk" });
+          await options.auth(ctx, { type: "update", entityType: "risk" });
         }
         return await ctx.runMutation(component.okrhub.updateRisk, args);
       },
@@ -719,7 +719,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "initiative" });
+          await options.auth(ctx, { type: "update", entityType: "initiative" });
         }
         return await ctx.runMutation(component.okrhub.updateInitiative, args);
       },
@@ -746,7 +746,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "indicator" });
+          await options.auth(ctx, { type: "update", entityType: "indicator" });
         }
         return await ctx.runMutation(component.okrhub.updateIndicator, args);
       },
@@ -763,7 +763,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "indicatorValue" });
+          await options.auth(ctx, { type: "update", entityType: "indicatorValue" });
         }
         return await ctx.runMutation(component.okrhub.updateIndicatorValue, args);
       },
@@ -780,7 +780,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "indicatorForecast" });
+          await options.auth(ctx, { type: "update", entityType: "indicatorForecast" });
         }
         return await ctx.runMutation(component.okrhub.updateIndicatorForecast, args);
       },
@@ -807,7 +807,7 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "milestone" });
+          await options.auth(ctx, { type: "update", entityType: "milestone" });
         }
         return await ctx.runMutation(component.okrhub.updateMilestone, args);
       },
