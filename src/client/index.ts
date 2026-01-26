@@ -66,7 +66,11 @@ export {
   PeriodicitySchema,
   InitiativeStatusSchema,
   MilestoneStatusSchema,
+  SyncStatusSchema,
 } from "../component/schema.js";
+
+// Re-export SyncStatus type
+export type { SyncStatus } from "../component/schema.js";
 
 // ============================================================================
 // COMPONENT API CONFIGURATION
@@ -413,6 +417,324 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         return await ctx.runQuery(component.okrhub.getPendingSyncItems, args);
+      },
+    }),
+
+    // =========================================================================
+    // LOCAL CRUD OPERATIONS (with sync)
+    // =========================================================================
+    
+    /**
+     * Creates an objective locally and queues for sync to LinkHub
+     */
+    createObjective: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        title: v.string(),
+        description: v.string(),
+        teamExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "objective" });
+        }
+        return await ctx.runMutation(component.okrhub.createObjective, args);
+      },
+    }),
+
+    /**
+     * Creates a key result locally and queues for sync to LinkHub
+     * Note: weight is always 0, managed only by LinkHub
+     */
+    createKeyResult: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        objectiveExternalId: v.optional(v.string()),
+        indicatorExternalId: v.string(),
+        teamExternalId: v.string(),
+        forecastValue: v.optional(v.number()),
+        targetValue: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "keyResult" });
+        }
+        return await ctx.runMutation(component.okrhub.createKeyResult, args);
+      },
+    }),
+
+    /**
+     * Creates a risk locally and queues for sync to LinkHub
+     */
+    createRisk: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        description: v.string(),
+        teamExternalId: v.string(),
+        keyResultExternalId: v.optional(v.string()),
+        priority: v.union(
+          v.literal("lowest"),
+          v.literal("low"),
+          v.literal("medium"),
+          v.literal("high"),
+          v.literal("highest")
+        ),
+        indicatorExternalId: v.optional(v.string()),
+        triggerValue: v.optional(v.number()),
+        triggeredIfLower: v.optional(v.boolean()),
+        useForecastAsTrigger: v.optional(v.boolean()),
+        isRed: v.optional(v.boolean()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "risk" });
+        }
+        return await ctx.runMutation(component.okrhub.createRisk, args);
+      },
+    }),
+
+    /**
+     * Creates an initiative locally and queues for sync to LinkHub
+     * Note: relativeImpact, overallImpact, isNew are set by LinkHub
+     */
+    createInitiative: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        description: v.string(),
+        teamExternalId: v.string(),
+        riskExternalId: v.optional(v.string()),
+        assigneeExternalId: v.string(),
+        createdByExternalId: v.string(),
+        status: v.optional(
+          v.union(
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("FINISHED")
+          )
+        ),
+        priority: v.union(
+          v.literal("lowest"),
+          v.literal("low"),
+          v.literal("medium"),
+          v.literal("high"),
+          v.literal("highest")
+        ),
+        finishedAt: v.optional(v.number()),
+        notes: v.optional(v.string()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "initiative" });
+        }
+        return await ctx.runMutation(component.okrhub.createInitiative, args);
+      },
+    }),
+
+    /**
+     * Creates an indicator locally and queues for sync to LinkHub
+     */
+    createIndicator: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        companyExternalId: v.string(),
+        description: v.string(),
+        symbol: v.string(),
+        periodicity: v.union(
+          v.literal("weekly"),
+          v.literal("monthly"),
+          v.literal("quarterly"),
+          v.literal("semesterly"),
+          v.literal("yearly")
+        ),
+        assigneeExternalId: v.optional(v.string()),
+        isReverse: v.optional(v.boolean()),
+        type: v.optional(v.union(v.literal("OUTPUT"), v.literal("OUTCOME"))),
+        notes: v.optional(v.string()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicator" });
+        }
+        return await ctx.runMutation(component.okrhub.createIndicator, args);
+      },
+    }),
+
+    /**
+     * Creates an indicator value locally and queues for sync to LinkHub
+     */
+    createIndicatorValue: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        indicatorExternalId: v.string(),
+        value: v.number(),
+        date: v.number(),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicatorValue" });
+        }
+        return await ctx.runMutation(component.okrhub.createIndicatorValue, args);
+      },
+    }),
+
+    /**
+     * Creates an indicator forecast locally and queues for sync to LinkHub
+     */
+    createIndicatorForecast: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        indicatorExternalId: v.string(),
+        value: v.number(),
+        date: v.number(),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicatorForecast" });
+        }
+        return await ctx.runMutation(component.okrhub.createIndicatorForecast, args);
+      },
+    }),
+
+    /**
+     * Creates a milestone locally and queues for sync to LinkHub
+     */
+    createMilestone: mutationGeneric({
+      args: {
+        sourceApp: v.string(),
+        sourceUrl: v.optional(v.string()),
+        indicatorExternalId: v.string(),
+        description: v.string(),
+        value: v.number(),
+        forecastDate: v.optional(v.number()),
+        status: v.optional(
+          v.union(
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("ACHIEVED_ON_TIME"),
+            v.literal("ACHIEVED_LATE")
+          )
+        ),
+        achievedAt: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "milestone" });
+        }
+        return await ctx.runMutation(component.okrhub.createMilestone, args);
+      },
+    }),
+
+    // =========================================================================
+    // LOCAL QUERY OPERATIONS
+    // =========================================================================
+
+    /**
+     * Gets all local objectives for a team
+     */
+    getObjectivesByTeam: queryGeneric({
+      args: {
+        teamExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getObjectivesByTeam, args);
+      },
+    }),
+
+    /**
+     * Gets all local key results for an objective
+     */
+    getKeyResultsByObjective: queryGeneric({
+      args: {
+        objectiveExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getKeyResultsByObjective, args);
+      },
+    }),
+
+    /**
+     * Gets all local risks for a key result
+     */
+    getRisksByKeyResult: queryGeneric({
+      args: {
+        keyResultExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getRisksByKeyResult, args);
+      },
+    }),
+
+    // =========================================================================
+    // LINKHUB API CALLS
+    // =========================================================================
+
+    /**
+     * Gets the list of teams where the user has active membership in LinkHub
+     * 
+     * @param email - User email address
+     * @returns List of teams with their IDs, names, and external IDs if available
+     */
+    getMyTeams: actionGeneric({
+      args: {
+        email: v.string(),
+      },
+      handler: async (ctx, args) => {
+        const config = getConfig(options);
+
+        // Create signature payload (query string without leading ?)
+        const queryString = `email=${encodeURIComponent(args.email)}`;
+        
+        // Create HMAC signature
+        const encoder = new TextEncoder();
+        const keyData = encoder.encode(config.signingSecret);
+        const messageData = encoder.encode(queryString);
+
+        const cryptoKey = await crypto.subtle.importKey(
+          "raw",
+          keyData,
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["sign"]
+        );
+
+        const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+        const signatureArray = Array.from(new Uint8Array(signatureBuffer));
+        const signature = signatureArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+        // Make request to LinkHub
+        const url = `${config.endpointUrl}/api/okrhub/teams?${queryString}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "X-OKRHub-Version": "0.1.0",
+            "X-OKRHub-Key-Prefix": config.apiKeyPrefix,
+            "X-OKRHub-Signature": signature,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to get teams: ${response.status} ${errorText}`);
+        }
+
+        return await response.json() as {
+          success: boolean;
+          teams: Array<{
+            id: string;
+            externalId?: string;
+            name: string;
+            slug: string;
+            type: string;
+          }>;
+          message?: string;
+        };
       },
     }),
   };

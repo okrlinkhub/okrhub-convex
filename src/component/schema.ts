@@ -352,14 +352,28 @@ export const batchPayloadValidator = v.object({
 });
 
 // ============================================================================
+// SYNC STATUS ENUM
+// ============================================================================
+
+export const SyncStatusSchema = v.union(
+  v.literal("pending"),
+  v.literal("synced"),
+  v.literal("failed")
+);
+
+// ============================================================================
 // COMPONENT INTERNAL SCHEMA
 // ============================================================================
 
 /**
- * Pending sync queue - tracks items waiting to be sent to LinkHub
- * This is for the component's internal use only
+ * Component schema with local tables for OKR entities.
+ * These tables store data locally before syncing to LinkHub.
  */
 export default defineSchema({
+  // =========================================================================
+  // SYNC INFRASTRUCTURE
+  // =========================================================================
+
   // Sync queue for pending items
   syncQueue: defineTable({
     entityType: v.string(), // objective, keyResult, risk, etc.
@@ -391,6 +405,163 @@ export default defineSchema({
     .index("by_external_id", ["externalId"])
     .index("by_entity_type", ["entityType"])
     .index("by_synced_at", ["syncedAt"]),
+
+  // =========================================================================
+  // LOCAL OKR TABLES
+  // =========================================================================
+
+  // Objectives - local storage before sync
+  objectives: defineTable({
+    externalId: v.string(),
+    title: v.string(),
+    description: v.string(),
+    teamExternalId: v.string(),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_team", ["teamExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Key Results - local storage before sync
+  keyResults: defineTable({
+    externalId: v.string(),
+    objectiveExternalId: v.optional(v.string()),
+    indicatorExternalId: v.string(),
+    teamExternalId: v.string(),
+    forecastValue: v.optional(v.number()),
+    targetValue: v.optional(v.number()),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_objective", ["objectiveExternalId"])
+    .index("by_team", ["teamExternalId"])
+    .index("by_indicator", ["indicatorExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Risks - local storage before sync
+  risks: defineTable({
+    externalId: v.string(),
+    description: v.string(),
+    teamExternalId: v.string(),
+    keyResultExternalId: v.optional(v.string()),
+    priority: PrioritySchema,
+    indicatorExternalId: v.optional(v.string()),
+    triggerValue: v.optional(v.number()),
+    triggeredIfLower: v.optional(v.boolean()),
+    useForecastAsTrigger: v.optional(v.boolean()),
+    isRed: v.optional(v.boolean()),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_key_result", ["keyResultExternalId"])
+    .index("by_team", ["teamExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Initiatives - local storage before sync
+  initiatives: defineTable({
+    externalId: v.string(),
+    description: v.string(),
+    teamExternalId: v.string(),
+    riskExternalId: v.optional(v.string()),
+    assigneeExternalId: v.string(),
+    createdByExternalId: v.string(),
+    status: InitiativeStatusSchema,
+    priority: PrioritySchema,
+    finishedAt: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_risk", ["riskExternalId"])
+    .index("by_team", ["teamExternalId"])
+    .index("by_assignee", ["assigneeExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Indicators - local storage before sync
+  indicators: defineTable({
+    externalId: v.string(),
+    companyExternalId: v.string(),
+    description: v.string(),
+    symbol: v.string(),
+    periodicity: PeriodicitySchema,
+    assigneeExternalId: v.optional(v.string()),
+    isReverse: v.optional(v.boolean()),
+    type: v.optional(IndicatorTypeSchema),
+    notes: v.optional(v.string()),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_company", ["companyExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Indicator Values - local storage before sync
+  indicatorValues: defineTable({
+    externalId: v.string(),
+    indicatorExternalId: v.string(),
+    value: v.number(),
+    date: v.number(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_indicator", ["indicatorExternalId"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Indicator Forecasts - local storage before sync
+  indicatorForecasts: defineTable({
+    externalId: v.string(),
+    indicatorExternalId: v.string(),
+    value: v.number(),
+    date: v.number(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_indicator", ["indicatorExternalId"])
+    .index("by_sync_status", ["syncStatus"]),
+
+  // Milestones - local storage before sync
+  milestones: defineTable({
+    externalId: v.string(),
+    indicatorExternalId: v.string(),
+    description: v.string(),
+    value: v.number(),
+    forecastDate: v.optional(v.number()),
+    status: v.optional(MilestoneStatusSchema),
+    achievedAt: v.optional(v.number()),
+    slug: v.string(),
+    syncStatus: SyncStatusSchema,
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_external_id", ["externalId"])
+    .index("by_indicator", ["indicatorExternalId"])
+    .index("by_slug", ["slug"])
+    .index("by_sync_status", ["syncStatus"]),
 });
 
 // ============================================================================
@@ -410,3 +581,4 @@ export type TeamPayload = typeof teamPayloadValidator.type;
 export type UserPayload = typeof userPayloadValidator.type;
 export type CompanyPayload = typeof companyPayloadValidator.type;
 export type BatchPayload = typeof batchPayloadValidator.type;
+export type SyncStatus = typeof SyncStatusSchema.type;

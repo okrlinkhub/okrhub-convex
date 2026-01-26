@@ -24,6 +24,396 @@ import type { FunctionReference } from "convex/server";
 export type ComponentApi<Name extends string | undefined = string | undefined> =
   {
     okrhub: {
+      createIndicator: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          assigneeExternalId?: string;
+          companyExternalId: string;
+          description: string;
+          isReverse?: boolean;
+          notes?: string;
+          periodicity:
+            | "weekly"
+            | "monthly"
+            | "quarterly"
+            | "semesterly"
+            | "yearly";
+          sourceApp: string;
+          sourceUrl?: string;
+          symbol: string;
+          type?: "OUTPUT" | "OUTCOME";
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createIndicatorForecast: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          date: number;
+          indicatorExternalId: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          value: number;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createIndicatorValue: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          date: number;
+          indicatorExternalId: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          value: number;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createInitiative: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          assigneeExternalId: string;
+          createdByExternalId: string;
+          description: string;
+          finishedAt?: number;
+          notes?: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId?: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+          teamExternalId: string;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createKeyResult: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          forecastValue?: number;
+          indicatorExternalId: string;
+          objectiveExternalId?: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          targetValue?: number;
+          teamExternalId: string;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createMilestone: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          achievedAt?: number;
+          description: string;
+          forecastDate?: number;
+          indicatorExternalId: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          status?: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
+          value: number;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createObjective: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          description: string;
+          sourceApp: string;
+          sourceUrl?: string;
+          teamExternalId: string;
+          title: string;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      createRisk: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          description: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId?: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          sourceApp: string;
+          sourceUrl?: string;
+          teamExternalId: string;
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
+        },
+        {
+          error?: string;
+          externalId: string;
+          localId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      getAllIndicatorForecasts: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          date: number;
+          externalId: string;
+          indicatorExternalId: string;
+          syncStatus: "pending" | "synced" | "failed";
+          value: number;
+        }>,
+        Name
+      >;
+      getAllIndicators: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId?: string;
+          companyExternalId: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          isReverse?: boolean;
+          notes?: string;
+          periodicity:
+            | "weekly"
+            | "monthly"
+            | "quarterly"
+            | "semesterly"
+            | "yearly";
+          slug: string;
+          symbol: string;
+          syncStatus: "pending" | "synced" | "failed";
+          type?: "OUTPUT" | "OUTCOME";
+        }>,
+        Name
+      >;
+      getAllIndicatorValues: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          date: number;
+          externalId: string;
+          indicatorExternalId: string;
+          syncStatus: "pending" | "synced" | "failed";
+          value: number;
+        }>,
+        Name
+      >;
+      getAllInitiatives: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId: string;
+          createdAt: number;
+          createdByExternalId: string;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          finishedAt?: number;
+          notes?: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId?: string;
+          slug: string;
+          status: "ON_TIME" | "OVERDUE" | "FINISHED";
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getAllKeyResults: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          externalId: string;
+          forecastValue?: number;
+          indicatorExternalId: string;
+          objectiveExternalId?: string;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          targetValue?: number;
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getAllMilestones: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          achievedAt?: number;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          forecastDate?: number;
+          indicatorExternalId: string;
+          slug: string;
+          status?: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
+          syncStatus: "pending" | "synced" | "failed";
+          updatedAt?: number;
+          value: number;
+        }>,
+        Name
+      >;
+      getAllObjectives: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          title: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getAllRisks: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId?: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
+        }>,
+        Name
+      >;
+      getKeyResultsByObjective: FunctionReference<
+        "query",
+        "internal",
+        { objectiveExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          externalId: string;
+          forecastValue?: number;
+          indicatorExternalId: string;
+          objectiveExternalId?: string;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          targetValue?: number;
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getObjectivesByTeam: FunctionReference<
+        "query",
+        "internal",
+        { teamExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          title: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
       getPendingSyncItems: FunctionReference<
         "query",
         "internal",
@@ -39,6 +429,30 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           lastAttemptAt?: number;
           payload: string;
           status: string;
+        }>,
+        Name
+      >;
+      getRisksByKeyResult: FunctionReference<
+        "query",
+        "internal",
+        { keyResultExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId?: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
         }>,
         Name
       >;
