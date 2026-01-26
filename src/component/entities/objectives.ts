@@ -1,0 +1,205 @@
+/**
+ * Objectives Entity for OKRHub Component
+ *
+ * CRUD operations and queries for Objectives.
+ */
+
+import { v } from "convex/values";
+import { mutation, query } from "../_generated/server.js";
+import type { Id } from "../_generated/dataModel.js";
+import { generateExternalId } from "../externalId.js";
+import { assertValidExternalId, generateSlug } from "../lib/validation.js";
+import { objectivePayloadValidator, SyncStatusSchema } from "../schema.js";
+
+// ============================================================================
+// LOCAL CRUD MUTATIONS
+// ============================================================================
+
+/**
+ * Creates an objective locally and queues for sync
+ */
+export const createObjective = mutation({
+  args: {
+    sourceApp: v.string(),
+    sourceUrl: v.optional(v.string()),
+    title: v.string(),
+    description: v.string(),
+    teamExternalId: v.string(),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    localId: v.id("objectives"),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { sourceApp, sourceUrl, title, description, teamExternalId } = args;
+
+    try {
+      // Validate team external ID
+      assertValidExternalId(teamExternalId, "teamExternalId");
+
+      // Generate external ID for this objective
+      const externalId = generateExternalId(sourceApp, "objective");
+      const slug = generateSlug(sourceApp, title);
+      const now = Date.now();
+
+      // Save locally
+      const localId = await ctx.db.insert("objectives", {
+        externalId,
+        title,
+        description,
+        teamExternalId,
+        slug,
+        syncStatus: "pending",
+        createdAt: now,
+      });
+
+      // Create payload for sync
+      const payload = JSON.stringify({
+        externalId,
+        title,
+        description,
+        teamExternalId,
+        sourceUrl,
+        createdAt: now,
+      });
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "objective",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        localId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId: "",
+        localId: "" as Id<"objectives">,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+// ============================================================================
+// LOCAL QUERY FUNCTIONS
+// ============================================================================
+
+/**
+ * Gets all local objectives for a team
+ */
+export const getObjectivesByTeam = query({
+  args: {
+    teamExternalId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("objectives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      title: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      slug: v.string(),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("objectives")
+      .withIndex("by_team", (q) => q.eq("teamExternalId", args.teamExternalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+/**
+ * Gets all local objectives
+ */
+export const getAllObjectives = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("objectives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      title: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      slug: v.string(),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("objectives")
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+// ============================================================================
+// PUBLIC MUTATIONS - Entry points for consumers
+// ============================================================================
+
+/**
+ * Insert an objective into LinkHub
+ */
+export const insertObjective = mutation({
+  args: {
+    objective: objectivePayloadValidator,
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { objective } = args;
+
+    // Validate external IDs
+    assertValidExternalId(objective.externalId, "objective.externalId");
+    assertValidExternalId(objective.teamExternalId, "objective.teamExternalId");
+
+    // Add to sync queue
+    const payload = JSON.stringify(objective);
+    const queueId = await ctx.db.insert("syncQueue", {
+      entityType: "objective",
+      externalId: objective.externalId,
+      payload,
+      status: "pending",
+      attempts: 0,
+      createdAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      externalId: objective.externalId,
+      queueId,
+    };
+  },
+});
