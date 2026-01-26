@@ -20,6 +20,7 @@ import type {
 import { v } from "convex/values";
 import { httpActionGeneric } from "convex/server";
 import type { ComponentApi } from "../component/_generated/component.js";
+import { OKRHUB_VERSION } from "../component/externalId.js";
 
 // Re-export external ID utilities
 export {
@@ -197,7 +198,7 @@ export function exposeApi(
       args: {
         keyResult: v.object({
           externalId: v.string(),
-          objectiveExternalId: v.optional(v.string()),
+          objectiveExternalId: v.string(), // Required
           indicatorExternalId: v.string(),
           teamExternalId: v.string(),
           weight: v.number(),
@@ -232,7 +233,7 @@ export function exposeApi(
             v.literal("high"),
             v.literal("highest")
           ),
-          keyResultExternalId: v.optional(v.string()),
+          keyResultExternalId: v.string(), // Required
           indicatorExternalId: v.optional(v.string()),
           triggerValue: v.optional(v.number()),
           triggeredIfLower: v.optional(v.boolean()),
@@ -267,18 +268,15 @@ export function exposeApi(
             v.literal("high"),
             v.literal("highest")
           ),
-          riskExternalId: v.optional(v.string()),
-          status: v.optional(
-            v.union(
-              v.literal("ON_TIME"),
-              v.literal("OVERDUE"),
-              v.literal("FINISHED")
-            )
+          riskExternalId: v.string(), // Required
+          status: v.union( // Required
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("FINISHED")
           ),
           isNew: v.optional(v.boolean()),
           finishedAt: v.optional(v.number()),
           externalUrl: v.optional(v.string()),
-          notes: v.optional(v.string()),
           createdAt: v.optional(v.number()),
           updatedAt: v.optional(v.number()),
         }),
@@ -308,10 +306,7 @@ export function exposeApi(
             v.literal("semesterly"),
             v.literal("yearly")
           ),
-          assigneeExternalId: v.optional(v.string()),
           isReverse: v.optional(v.boolean()),
-          type: v.optional(v.union(v.literal("OUTPUT"), v.literal("OUTCOME"))),
-          notes: v.optional(v.string()),
           automationUrl: v.optional(v.string()),
           automationDescription: v.optional(v.string()),
           forecastDate: v.optional(v.number()),
@@ -363,16 +358,14 @@ export function exposeApi(
           indicatorExternalId: v.string(),
           description: v.string(),
           value: v.number(),
+          status: v.union( // Required
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("ACHIEVED_ON_TIME"),
+            v.literal("ACHIEVED_LATE")
+          ),
           achievedAt: v.optional(v.number()),
           forecastDate: v.optional(v.number()),
-          status: v.optional(
-            v.union(
-              v.literal("ON_TIME"),
-              v.literal("OVERDUE"),
-              v.literal("ACHIEVED_ON_TIME"),
-              v.literal("ACHIEVED_LATE")
-            )
-          ),
           createdAt: v.optional(v.number()),
           updatedAt: v.optional(v.number()),
         }),
@@ -451,7 +444,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
-        objectiveExternalId: v.optional(v.string()),
+        objectiveExternalId: v.string(), // Required
         indicatorExternalId: v.string(),
         teamExternalId: v.string(),
         forecastValue: v.optional(v.number()),
@@ -474,7 +467,7 @@ export function exposeApi(
         sourceUrl: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
-        keyResultExternalId: v.optional(v.string()),
+        keyResultExternalId: v.string(), // Required
         priority: v.union(
           v.literal("lowest"),
           v.literal("low"),
@@ -506,10 +499,10 @@ export function exposeApi(
         sourceUrl: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
-        riskExternalId: v.optional(v.string()),
+        riskExternalId: v.string(), // Required
         assigneeExternalId: v.string(),
         createdByExternalId: v.string(),
-        status: v.optional(
+        status: v.optional( // Optional in input, default ON_TIME in backend
           v.union(
             v.literal("ON_TIME"),
             v.literal("OVERDUE"),
@@ -524,7 +517,6 @@ export function exposeApi(
           v.literal("highest")
         ),
         finishedAt: v.optional(v.number()),
-        notes: v.optional(v.string()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -551,10 +543,7 @@ export function exposeApi(
           v.literal("semesterly"),
           v.literal("yearly")
         ),
-        assigneeExternalId: v.optional(v.string()),
         isReverse: v.optional(v.boolean()),
-        type: v.optional(v.union(v.literal("OUTPUT"), v.literal("OUTCOME"))),
-        notes: v.optional(v.string()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -628,6 +617,199 @@ export function exposeApi(
           await options.auth(ctx, { type: "insert", entityType: "milestone" });
         }
         return await ctx.runMutation(component.okrhub.createMilestone, args);
+      },
+    }),
+
+    // =========================================================================
+    // LOCAL UPDATE OPERATIONS (with sync reset)
+    // =========================================================================
+
+    /**
+     * Updates an objective locally and resets syncStatus to pending
+     */
+    updateObjective: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "objective" });
+        }
+        return await ctx.runMutation(component.okrhub.updateObjective, args);
+      },
+    }),
+
+    /**
+     * Updates a key result locally and resets syncStatus to pending
+     */
+    updateKeyResult: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        objectiveExternalId: v.optional(v.string()),
+        forecastValue: v.optional(v.number()),
+        targetValue: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "keyResult" });
+        }
+        return await ctx.runMutation(component.okrhub.updateKeyResult, args);
+      },
+    }),
+
+    /**
+     * Updates a risk locally and resets syncStatus to pending
+     */
+    updateRisk: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        description: v.optional(v.string()),
+        priority: v.optional(
+          v.union(
+            v.literal("lowest"),
+            v.literal("low"),
+            v.literal("medium"),
+            v.literal("high"),
+            v.literal("highest")
+          )
+        ),
+        keyResultExternalId: v.optional(v.string()),
+        indicatorExternalId: v.optional(v.string()),
+        triggerValue: v.optional(v.number()),
+        triggeredIfLower: v.optional(v.boolean()),
+        useForecastAsTrigger: v.optional(v.boolean()),
+        isRed: v.optional(v.boolean()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "risk" });
+        }
+        return await ctx.runMutation(component.okrhub.updateRisk, args);
+      },
+    }),
+
+    /**
+     * Updates an initiative locally and resets syncStatus to pending
+     */
+    updateInitiative: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        description: v.optional(v.string()),
+        riskExternalId: v.optional(v.string()),
+        assigneeExternalId: v.optional(v.string()),
+        status: v.optional(
+          v.union(
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("FINISHED")
+          )
+        ),
+        priority: v.optional(
+          v.union(
+            v.literal("lowest"),
+            v.literal("low"),
+            v.literal("medium"),
+            v.literal("high"),
+            v.literal("highest")
+          )
+        ),
+        finishedAt: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "initiative" });
+        }
+        return await ctx.runMutation(component.okrhub.updateInitiative, args);
+      },
+    }),
+
+    /**
+     * Updates an indicator locally and resets syncStatus to pending
+     */
+    updateIndicator: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        description: v.optional(v.string()),
+        symbol: v.optional(v.string()),
+        periodicity: v.optional(
+          v.union(
+            v.literal("weekly"),
+            v.literal("monthly"),
+            v.literal("quarterly"),
+            v.literal("semesterly"),
+            v.literal("yearly")
+          )
+        ),
+        isReverse: v.optional(v.boolean()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicator" });
+        }
+        return await ctx.runMutation(component.okrhub.updateIndicator, args);
+      },
+    }),
+
+    /**
+     * Updates an indicator value locally and resets syncStatus to pending
+     */
+    updateIndicatorValue: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        value: v.optional(v.number()),
+        date: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicatorValue" });
+        }
+        return await ctx.runMutation(component.okrhub.updateIndicatorValue, args);
+      },
+    }),
+
+    /**
+     * Updates an indicator forecast locally and resets syncStatus to pending
+     */
+    updateIndicatorForecast: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        value: v.optional(v.number()),
+        date: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "indicatorForecast" });
+        }
+        return await ctx.runMutation(component.okrhub.updateIndicatorForecast, args);
+      },
+    }),
+
+    /**
+     * Updates a milestone locally and resets syncStatus to pending
+     */
+    updateMilestone: mutationGeneric({
+      args: {
+        externalId: v.string(),
+        description: v.optional(v.string()),
+        value: v.optional(v.number()),
+        forecastDate: v.optional(v.number()),
+        status: v.optional(
+          v.union(
+            v.literal("ON_TIME"),
+            v.literal("OVERDUE"),
+            v.literal("ACHIEVED_ON_TIME"),
+            v.literal("ACHIEVED_LATE")
+          )
+        ),
+        achievedAt: v.optional(v.number()),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "insert", entityType: "milestone" });
+        }
+        return await ctx.runMutation(component.okrhub.updateMilestone, args);
       },
     }),
 
@@ -713,7 +895,7 @@ export function exposeApi(
         const response = await fetch(url, {
           method: "GET",
           headers: {
-            "X-OKRHub-Version": "0.1.0",
+            "X-OKRHub-Version": OKRHUB_VERSION,
             "X-OKRHub-Key-Prefix": config.apiKeyPrefix,
             "X-OKRHub-Signature": signature,
           },
@@ -778,7 +960,7 @@ export function registerRoutes(
       return new Response(
         JSON.stringify({
           status: "ok",
-          version: "0.1.0",
+          version: OKRHUB_VERSION,
           timestamp: Date.now(),
         }),
         {

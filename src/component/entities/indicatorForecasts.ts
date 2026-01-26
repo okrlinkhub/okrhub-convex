@@ -95,6 +95,93 @@ export const createIndicatorForecast = mutation({
 // LOCAL QUERY FUNCTIONS
 // ============================================================================
 
+// ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates an indicator forecast locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateIndicatorForecast = mutation({
+  args: {
+    externalId: v.string(),
+    value: v.optional(v.number()),
+    date: v.optional(v.number()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId, value, date } = args;
+
+    try {
+      // Find the indicator forecast by externalId
+      const indicatorForecast = await ctx.db
+        .query("indicatorForecasts")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!indicatorForecast) {
+        return {
+          success: false,
+          externalId,
+          error: `Indicator forecast not found: ${externalId}`,
+        };
+      }
+
+      const now = Date.now();
+
+      // Update the indicator forecast
+      await ctx.db.patch(indicatorForecast._id, {
+        ...(value !== undefined && { value }),
+        ...(date !== undefined && { date }),
+        syncStatus: "pending",
+      });
+
+      // Create payload for sync with updated values
+      const updatedIndicatorForecast = {
+        externalId,
+        indicatorExternalId: indicatorForecast.indicatorExternalId,
+        value: value ?? indicatorForecast.value,
+        date: date ?? indicatorForecast.date,
+      };
+
+      const payload = JSON.stringify(updatedIndicatorForecast);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "indicatorForecast",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
 /**
  * Gets all local indicator forecasts
  */

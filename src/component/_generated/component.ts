@@ -50,7 +50,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 value: number;
               }>;
               indicators?: Array<{
-                assigneeExternalId?: string;
                 automationDescription?: string;
                 automationUrl?: string;
                 companyExternalId: string;
@@ -59,7 +58,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 forecastDate?: number;
                 isReverse?: boolean;
-                notes?: string;
                 periodicity:
                   | "weekly"
                   | "monthly"
@@ -67,7 +65,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                   | "semesterly"
                   | "yearly";
                 symbol: string;
-                type?: "OUTPUT" | "OUTCOME";
               }>;
               initiatives?: Array<{
                 assigneeExternalId: string;
@@ -78,10 +75,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalUrl?: string;
                 finishedAt?: number;
                 isNew?: boolean;
-                notes?: string;
                 priority: "lowest" | "low" | "medium" | "high" | "highest";
-                riskExternalId?: string;
-                status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+                riskExternalId: string;
+                status: "ON_TIME" | "OVERDUE" | "FINISHED";
                 teamExternalId: string;
                 updatedAt?: number;
               }>;
@@ -91,7 +87,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 forecastValue?: number;
                 impact?: number;
                 indicatorExternalId: string;
-                objectiveExternalId?: string;
+                objectiveExternalId: string;
                 targetValue?: number;
                 teamExternalId: string;
                 updatedAt?: number;
@@ -104,7 +100,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 forecastDate?: number;
                 indicatorExternalId: string;
-                status?:
+                status:
                   | "ON_TIME"
                   | "OVERDUE"
                   | "ACHIEVED_ON_TIME"
@@ -126,7 +122,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 indicatorExternalId?: string;
                 isRed?: boolean;
-                keyResultExternalId?: string;
+                keyResultExternalId: string;
                 priority: "lowest" | "low" | "medium" | "high" | "highest";
                 teamExternalId: string;
                 triggerValue?: number;
@@ -157,11 +153,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "mutation",
           "internal",
           {
-            assigneeExternalId?: string;
             companyExternalId: string;
             description: string;
             isReverse?: boolean;
-            notes?: string;
             periodicity:
               | "weekly"
               | "monthly"
@@ -171,7 +165,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             sourceApp: string;
             sourceUrl?: string;
             symbol: string;
-            type?: "OUTPUT" | "OUTCOME";
           },
           {
             error?: string;
@@ -228,9 +221,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             createdByExternalId: string;
             description: string;
             finishedAt?: number;
-            notes?: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId?: string;
+            riskExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
             status?: "ON_TIME" | "OVERDUE" | "FINISHED";
@@ -251,7 +243,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
             targetValue?: number;
@@ -318,7 +310,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
             sourceUrl?: string;
@@ -359,14 +351,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           Array<{
             _creationTime: number;
             _id: string;
-            assigneeExternalId?: string;
             companyExternalId: string;
             createdAt: number;
             deletedAt?: number;
             description: string;
             externalId: string;
             isReverse?: boolean;
-            notes?: string;
             periodicity:
               | "weekly"
               | "monthly"
@@ -376,7 +366,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             slug: string;
             symbol: string;
             syncStatus: "pending" | "synced" | "failed";
-            type?: "OUTPUT" | "OUTCOME";
           }>,
           Name
         >;
@@ -410,9 +399,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description: string;
             externalId: string;
             finishedAt?: number;
-            notes?: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId?: string;
+            riskExternalId: string;
             slug: string;
             status: "ON_TIME" | "OVERDUE" | "FINISHED";
             syncStatus: "pending" | "synced" | "failed";
@@ -433,7 +421,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
             targetValue?: number;
@@ -457,7 +445,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             forecastDate?: number;
             indicatorExternalId: string;
             slug: string;
-            status?:
+            status:
               | "ON_TIME"
               | "OVERDUE"
               | "ACHIEVED_ON_TIME"
@@ -500,7 +488,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
@@ -523,7 +511,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
             targetValue?: number;
@@ -564,7 +552,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
@@ -600,7 +588,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 value: number;
               }>;
               indicators?: Array<{
-                assigneeExternalId?: string;
                 automationDescription?: string;
                 automationUrl?: string;
                 companyExternalId: string;
@@ -609,7 +596,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 forecastDate?: number;
                 isReverse?: boolean;
-                notes?: string;
                 periodicity:
                   | "weekly"
                   | "monthly"
@@ -617,7 +603,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                   | "semesterly"
                   | "yearly";
                 symbol: string;
-                type?: "OUTPUT" | "OUTCOME";
               }>;
               initiatives?: Array<{
                 assigneeExternalId: string;
@@ -628,10 +613,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalUrl?: string;
                 finishedAt?: number;
                 isNew?: boolean;
-                notes?: string;
                 priority: "lowest" | "low" | "medium" | "high" | "highest";
-                riskExternalId?: string;
-                status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+                riskExternalId: string;
+                status: "ON_TIME" | "OVERDUE" | "FINISHED";
                 teamExternalId: string;
                 updatedAt?: number;
               }>;
@@ -641,7 +625,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 forecastValue?: number;
                 impact?: number;
                 indicatorExternalId: string;
-                objectiveExternalId?: string;
+                objectiveExternalId: string;
                 targetValue?: number;
                 teamExternalId: string;
                 updatedAt?: number;
@@ -654,7 +638,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 forecastDate?: number;
                 indicatorExternalId: string;
-                status?:
+                status:
                   | "ON_TIME"
                   | "OVERDUE"
                   | "ACHIEVED_ON_TIME"
@@ -676,7 +660,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalId: string;
                 indicatorExternalId?: string;
                 isRed?: boolean;
-                keyResultExternalId?: string;
+                keyResultExternalId: string;
                 priority: "lowest" | "low" | "medium" | "high" | "highest";
                 teamExternalId: string;
                 triggerValue?: number;
@@ -706,7 +690,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             indicator: {
-              assigneeExternalId?: string;
               automationDescription?: string;
               automationUrl?: string;
               companyExternalId: string;
@@ -715,7 +698,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               isReverse?: boolean;
-              notes?: string;
               periodicity:
                 | "weekly"
                 | "monthly"
@@ -723,7 +705,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 | "semesterly"
                 | "yearly";
               symbol: string;
-              type?: "OUTPUT" | "OUTCOME";
             };
           },
           {
@@ -767,10 +748,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalUrl?: string;
               finishedAt?: number;
               isNew?: boolean;
-              notes?: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId?: string;
-              status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+              riskExternalId: string;
+              status: "ON_TIME" | "OVERDUE" | "FINISHED";
               teamExternalId: string;
               updatedAt?: number;
             };
@@ -793,7 +773,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               forecastValue?: number;
               impact?: number;
               indicatorExternalId: string;
-              objectiveExternalId?: string;
+              objectiveExternalId: string;
               targetValue?: number;
               teamExternalId: string;
               updatedAt?: number;
@@ -819,7 +799,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               indicatorExternalId: string;
-              status?:
+              status:
                 | "ON_TIME"
                 | "OVERDUE"
                 | "ACHIEVED_ON_TIME"
@@ -867,7 +847,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               indicatorExternalId?: string;
               isRed?: boolean;
-              keyResultExternalId?: string;
+              keyResultExternalId: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
               teamExternalId: string;
               triggerValue?: number;
@@ -920,17 +900,27 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
+        updateIndicatorForecast: FunctionReference<
+          "mutation",
+          "internal",
+          { date?: number; externalId: string; value?: number },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
       };
       indicators: {
         createIndicator: FunctionReference<
           "mutation",
           "internal",
           {
-            assigneeExternalId?: string;
             companyExternalId: string;
             description: string;
             isReverse?: boolean;
-            notes?: string;
             periodicity:
               | "weekly"
               | "monthly"
@@ -940,7 +930,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             sourceApp: string;
             sourceUrl?: string;
             symbol: string;
-            type?: "OUTPUT" | "OUTCOME";
           },
           {
             error?: string;
@@ -958,14 +947,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           Array<{
             _creationTime: number;
             _id: string;
-            assigneeExternalId?: string;
             companyExternalId: string;
             createdAt: number;
             deletedAt?: number;
             description: string;
             externalId: string;
             isReverse?: boolean;
-            notes?: string;
             periodicity:
               | "weekly"
               | "monthly"
@@ -975,7 +962,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             slug: string;
             symbol: string;
             syncStatus: "pending" | "synced" | "failed";
-            type?: "OUTPUT" | "OUTCOME";
           }>,
           Name
         >;
@@ -984,7 +970,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             indicator: {
-              assigneeExternalId?: string;
               automationDescription?: string;
               automationUrl?: string;
               companyExternalId: string;
@@ -993,7 +978,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               isReverse?: boolean;
-              notes?: string;
               periodicity:
                 | "weekly"
                 | "monthly"
@@ -1001,8 +985,30 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 | "semesterly"
                 | "yearly";
               symbol: string;
-              type?: "OUTPUT" | "OUTCOME";
             };
+          },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
+        updateIndicator: FunctionReference<
+          "mutation",
+          "internal",
+          {
+            description?: string;
+            externalId: string;
+            isReverse?: boolean;
+            periodicity?:
+              | "weekly"
+              | "monthly"
+              | "quarterly"
+              | "semesterly"
+              | "yearly";
+            symbol?: string;
           },
           {
             error?: string;
@@ -1069,6 +1075,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           Name
         >;
+        updateIndicatorValue: FunctionReference<
+          "mutation",
+          "internal",
+          { date?: number; externalId: string; value?: number },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
       };
       initiatives: {
         createInitiative: FunctionReference<
@@ -1079,9 +1097,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             createdByExternalId: string;
             description: string;
             finishedAt?: number;
-            notes?: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId?: string;
+            riskExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
             status?: "ON_TIME" | "OVERDUE" | "FINISHED";
@@ -1110,9 +1127,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description: string;
             externalId: string;
             finishedAt?: number;
-            notes?: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId?: string;
+            riskExternalId: string;
             slug: string;
             status: "ON_TIME" | "OVERDUE" | "FINISHED";
             syncStatus: "pending" | "synced" | "failed";
@@ -1134,13 +1150,32 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalUrl?: string;
               finishedAt?: number;
               isNew?: boolean;
-              notes?: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId?: string;
-              status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+              riskExternalId: string;
+              status: "ON_TIME" | "OVERDUE" | "FINISHED";
               teamExternalId: string;
               updatedAt?: number;
             };
+          },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
+        updateInitiative: FunctionReference<
+          "mutation",
+          "internal",
+          {
+            assigneeExternalId?: string;
+            description?: string;
+            externalId: string;
+            finishedAt?: number;
+            priority?: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId?: string;
+            status?: "ON_TIME" | "OVERDUE" | "FINISHED";
           },
           {
             error?: string;
@@ -1158,7 +1193,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
             targetValue?: number;
@@ -1185,7 +1220,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
             targetValue?: number;
@@ -1206,7 +1241,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastValue?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
             targetValue?: number;
@@ -1225,12 +1260,29 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               forecastValue?: number;
               impact?: number;
               indicatorExternalId: string;
-              objectiveExternalId?: string;
+              objectiveExternalId: string;
               targetValue?: number;
               teamExternalId: string;
               updatedAt?: number;
               weight: number;
             };
+          },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
+        updateKeyResult: FunctionReference<
+          "mutation",
+          "internal",
+          {
+            externalId: string;
+            forecastValue?: number;
+            objectiveExternalId?: string;
+            targetValue?: number;
           },
           {
             error?: string;
@@ -1283,7 +1335,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             forecastDate?: number;
             indicatorExternalId: string;
             slug: string;
-            status?:
+            status:
               | "ON_TIME"
               | "OVERDUE"
               | "ACHIEVED_ON_TIME"
@@ -1305,7 +1357,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               indicatorExternalId: string;
-              status?:
+              status:
                 | "ON_TIME"
                 | "OVERDUE"
                 | "ACHIEVED_ON_TIME"
@@ -1313,6 +1365,29 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               updatedAt?: number;
               value: number;
             };
+          },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
+        updateMilestone: FunctionReference<
+          "mutation",
+          "internal",
+          {
+            achievedAt?: number;
+            description?: string;
+            externalId: string;
+            forecastDate?: number;
+            status?:
+              | "ON_TIME"
+              | "OVERDUE"
+              | "ACHIEVED_ON_TIME"
+              | "ACHIEVED_LATE";
+            value?: number;
           },
           {
             error?: string;
@@ -1402,6 +1477,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           Name
         >;
+        updateObjective: FunctionReference<
+          "mutation",
+          "internal",
+          { description?: string; externalId: string; title?: string },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
       };
       risks: {
         createRisk: FunctionReference<
@@ -1411,7 +1498,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
             sourceUrl?: string;
@@ -1442,7 +1529,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
@@ -1466,7 +1553,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             slug: string;
             syncStatus: "pending" | "synced" | "failed";
@@ -1487,13 +1574,35 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               indicatorExternalId?: string;
               isRed?: boolean;
-              keyResultExternalId?: string;
+              keyResultExternalId: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
               teamExternalId: string;
               triggerValue?: number;
               triggeredIfLower?: boolean;
               useForecastAsTrigger?: boolean;
             };
+          },
+          {
+            error?: string;
+            externalId: string;
+            queueId?: string;
+            success: boolean;
+          },
+          Name
+        >;
+        updateRisk: FunctionReference<
+          "mutation",
+          "internal",
+          {
+            description?: string;
+            externalId: string;
+            indicatorExternalId?: string;
+            isRed?: boolean;
+            keyResultExternalId?: string;
+            priority?: "lowest" | "low" | "medium" | "high" | "highest";
+            triggerValue?: number;
+            triggeredIfLower?: boolean;
+            useForecastAsTrigger?: boolean;
           },
           {
             error?: string;
@@ -1510,11 +1619,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         {
-          assigneeExternalId?: string;
           companyExternalId: string;
           description: string;
           isReverse?: boolean;
-          notes?: string;
           periodicity:
             | "weekly"
             | "monthly"
@@ -1524,7 +1631,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           sourceApp: string;
           sourceUrl?: string;
           symbol: string;
-          type?: "OUTPUT" | "OUTCOME";
         },
         {
           error?: string;
@@ -1581,9 +1687,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           createdByExternalId: string;
           description: string;
           finishedAt?: number;
-          notes?: string;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
-          riskExternalId?: string;
+          riskExternalId: string;
           sourceApp: string;
           sourceUrl?: string;
           status?: "ON_TIME" | "OVERDUE" | "FINISHED";
@@ -1604,7 +1709,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           forecastValue?: number;
           indicatorExternalId: string;
-          objectiveExternalId?: string;
+          objectiveExternalId: string;
           sourceApp: string;
           sourceUrl?: string;
           targetValue?: number;
@@ -1667,7 +1772,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           description: string;
           indicatorExternalId?: string;
           isRed?: boolean;
-          keyResultExternalId?: string;
+          keyResultExternalId: string;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           sourceApp: string;
           sourceUrl?: string;
@@ -1708,14 +1813,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         Array<{
           _creationTime: number;
           _id: string;
-          assigneeExternalId?: string;
           companyExternalId: string;
           createdAt: number;
           deletedAt?: number;
           description: string;
           externalId: string;
           isReverse?: boolean;
-          notes?: string;
           periodicity:
             | "weekly"
             | "monthly"
@@ -1725,7 +1828,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           slug: string;
           symbol: string;
           syncStatus: "pending" | "synced" | "failed";
-          type?: "OUTPUT" | "OUTCOME";
         }>,
         Name
       >;
@@ -1759,9 +1861,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           description: string;
           externalId: string;
           finishedAt?: number;
-          notes?: string;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
-          riskExternalId?: string;
+          riskExternalId: string;
           slug: string;
           status: "ON_TIME" | "OVERDUE" | "FINISHED";
           syncStatus: "pending" | "synced" | "failed";
@@ -1782,7 +1883,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId: string;
           forecastValue?: number;
           indicatorExternalId: string;
-          objectiveExternalId?: string;
+          objectiveExternalId: string;
           slug: string;
           syncStatus: "pending" | "synced" | "failed";
           targetValue?: number;
@@ -1806,7 +1907,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           forecastDate?: number;
           indicatorExternalId: string;
           slug: string;
-          status?: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
+          status: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
           syncStatus: "pending" | "synced" | "failed";
           updatedAt?: number;
           value: number;
@@ -1845,7 +1946,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId: string;
           indicatorExternalId?: string;
           isRed?: boolean;
-          keyResultExternalId?: string;
+          keyResultExternalId: string;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           slug: string;
           syncStatus: "pending" | "synced" | "failed";
@@ -1868,7 +1969,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId: string;
           forecastValue?: number;
           indicatorExternalId: string;
-          objectiveExternalId?: string;
+          objectiveExternalId: string;
           slug: string;
           syncStatus: "pending" | "synced" | "failed";
           targetValue?: number;
@@ -1927,7 +2028,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId: string;
           indicatorExternalId?: string;
           isRed?: boolean;
-          keyResultExternalId?: string;
+          keyResultExternalId: string;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           slug: string;
           syncStatus: "pending" | "synced" | "failed";
@@ -1963,7 +2064,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               value: number;
             }>;
             indicators?: Array<{
-              assigneeExternalId?: string;
               automationDescription?: string;
               automationUrl?: string;
               companyExternalId: string;
@@ -1972,7 +2072,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               isReverse?: boolean;
-              notes?: string;
               periodicity:
                 | "weekly"
                 | "monthly"
@@ -1980,7 +2079,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 | "semesterly"
                 | "yearly";
               symbol: string;
-              type?: "OUTPUT" | "OUTCOME";
             }>;
             initiatives?: Array<{
               assigneeExternalId: string;
@@ -1991,10 +2089,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalUrl?: string;
               finishedAt?: number;
               isNew?: boolean;
-              notes?: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId?: string;
-              status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+              riskExternalId: string;
+              status: "ON_TIME" | "OVERDUE" | "FINISHED";
               teamExternalId: string;
               updatedAt?: number;
             }>;
@@ -2004,7 +2101,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               forecastValue?: number;
               impact?: number;
               indicatorExternalId: string;
-              objectiveExternalId?: string;
+              objectiveExternalId: string;
               targetValue?: number;
               teamExternalId: string;
               updatedAt?: number;
@@ -2017,7 +2114,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               forecastDate?: number;
               indicatorExternalId: string;
-              status?:
+              status:
                 | "ON_TIME"
                 | "OVERDUE"
                 | "ACHIEVED_ON_TIME"
@@ -2039,7 +2136,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               externalId: string;
               indicatorExternalId?: string;
               isRed?: boolean;
-              keyResultExternalId?: string;
+              keyResultExternalId: string;
               priority: "lowest" | "low" | "medium" | "high" | "highest";
               teamExternalId: string;
               triggerValue?: number;
@@ -2069,7 +2166,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           indicator: {
-            assigneeExternalId?: string;
             automationDescription?: string;
             automationUrl?: string;
             companyExternalId: string;
@@ -2078,7 +2174,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastDate?: number;
             isReverse?: boolean;
-            notes?: string;
             periodicity:
               | "weekly"
               | "monthly"
@@ -2086,7 +2181,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               | "semesterly"
               | "yearly";
             symbol: string;
-            type?: "OUTPUT" | "OUTCOME";
           };
         },
         {
@@ -2130,10 +2224,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalUrl?: string;
             finishedAt?: number;
             isNew?: boolean;
-            notes?: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId?: string;
-            status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+            riskExternalId: string;
+            status: "ON_TIME" | "OVERDUE" | "FINISHED";
             teamExternalId: string;
             updatedAt?: number;
           };
@@ -2156,7 +2249,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             forecastValue?: number;
             impact?: number;
             indicatorExternalId: string;
-            objectiveExternalId?: string;
+            objectiveExternalId: string;
             targetValue?: number;
             teamExternalId: string;
             updatedAt?: number;
@@ -2182,7 +2275,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             forecastDate?: number;
             indicatorExternalId: string;
-            status?:
+            status:
               | "ON_TIME"
               | "OVERDUE"
               | "ACHIEVED_ON_TIME"
@@ -2230,7 +2323,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId: string;
             indicatorExternalId?: string;
             isRed?: boolean;
-            keyResultExternalId?: string;
+            keyResultExternalId: string;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             teamExternalId: string;
             triggerValue?: number;
@@ -2295,6 +2388,143 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           externalId: string;
           linkHubId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateIndicator: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          description?: string;
+          externalId: string;
+          isReverse?: boolean;
+          periodicity?:
+            | "weekly"
+            | "monthly"
+            | "quarterly"
+            | "semesterly"
+            | "yearly";
+          symbol?: string;
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateIndicatorForecast: FunctionReference<
+        "mutation",
+        "internal",
+        { date?: number; externalId: string; value?: number },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateIndicatorValue: FunctionReference<
+        "mutation",
+        "internal",
+        { date?: number; externalId: string; value?: number },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateInitiative: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          assigneeExternalId?: string;
+          description?: string;
+          externalId: string;
+          finishedAt?: number;
+          priority?: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId?: string;
+          status?: "ON_TIME" | "OVERDUE" | "FINISHED";
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateKeyResult: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          externalId: string;
+          forecastValue?: number;
+          objectiveExternalId?: string;
+          targetValue?: number;
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateMilestone: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          achievedAt?: number;
+          description?: string;
+          externalId: string;
+          forecastDate?: number;
+          status?: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
+          value?: number;
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateObjective: FunctionReference<
+        "mutation",
+        "internal",
+        { description?: string; externalId: string; title?: string },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
+          success: boolean;
+        },
+        Name
+      >;
+      updateRisk: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          description?: string;
+          externalId: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId?: string;
+          priority?: "lowest" | "low" | "medium" | "high" | "highest";
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
+        },
+        {
+          error?: string;
+          externalId: string;
+          queueId?: string;
           success: boolean;
         },
         Name

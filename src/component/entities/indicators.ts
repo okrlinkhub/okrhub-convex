@@ -12,7 +12,6 @@ import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
   indicatorPayloadValidator,
   PeriodicitySchema,
-  IndicatorTypeSchema,
   SyncStatusSchema,
 } from "../schema.js";
 
@@ -31,10 +30,7 @@ export const createIndicator = mutation({
     description: v.string(),
     symbol: v.string(),
     periodicity: PeriodicitySchema,
-    assigneeExternalId: v.optional(v.string()),
     isReverse: v.optional(v.boolean()),
-    type: v.optional(IndicatorTypeSchema),
-    notes: v.optional(v.string()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -51,17 +47,11 @@ export const createIndicator = mutation({
       description,
       symbol,
       periodicity,
-      assigneeExternalId,
       isReverse,
-      type,
-      notes,
     } = args;
 
     try {
       assertValidExternalId(companyExternalId, "companyExternalId");
-      if (assigneeExternalId) {
-        assertValidExternalId(assigneeExternalId, "assigneeExternalId");
-      }
 
       const externalId = generateExternalId(sourceApp, "indicator");
       const slug = generateSlug(sourceApp, description);
@@ -73,10 +63,7 @@ export const createIndicator = mutation({
         description,
         symbol,
         periodicity,
-        assigneeExternalId,
         isReverse,
-        type,
-        notes,
         slug,
         syncStatus: "pending",
         createdAt: now,
@@ -88,10 +75,7 @@ export const createIndicator = mutation({
         description,
         symbol,
         periodicity,
-        assigneeExternalId,
         isReverse,
-        type,
-        notes,
         sourceUrl,
         createdAt: now,
       });
@@ -145,10 +129,7 @@ export const getAllIndicators = query({
       description: v.string(),
       symbol: v.string(),
       periodicity: PeriodicitySchema,
-      assigneeExternalId: v.optional(v.string()),
       isReverse: v.optional(v.boolean()),
-      type: v.optional(IndicatorTypeSchema),
-      notes: v.optional(v.string()),
       slug: v.string(),
       syncStatus: SyncStatusSchema,
       createdAt: v.number(),
@@ -160,6 +141,105 @@ export const getAllIndicators = query({
       .query("indicators")
       .filter((q) => q.eq(q.field("deletedAt"), undefined))
       .collect();
+  },
+});
+
+// ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates an indicator locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateIndicator = mutation({
+  args: {
+    externalId: v.string(),
+    description: v.optional(v.string()),
+    symbol: v.optional(v.string()),
+    periodicity: v.optional(PeriodicitySchema),
+    isReverse: v.optional(v.boolean()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const {
+      externalId,
+      description,
+      symbol,
+      periodicity,
+      isReverse,
+    } = args;
+
+    try {
+      // Find the indicator by externalId
+      const indicator = await ctx.db
+        .query("indicators")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!indicator) {
+        return {
+          success: false,
+          externalId,
+          error: `Indicator not found: ${externalId}`,
+        };
+      }
+
+      const now = Date.now();
+
+      // Update the indicator
+      await ctx.db.patch(indicator._id, {
+        ...(description !== undefined && { description }),
+        ...(symbol !== undefined && { symbol }),
+        ...(periodicity !== undefined && { periodicity }),
+        ...(isReverse !== undefined && { isReverse }),
+        syncStatus: "pending",
+      });
+
+      // Create payload for sync with updated values
+      const updatedIndicator = {
+        externalId,
+        companyExternalId: indicator.companyExternalId,
+        description: description ?? indicator.description,
+        symbol: symbol ?? indicator.symbol,
+        periodicity: periodicity ?? indicator.periodicity,
+        isReverse: isReverse ?? indicator.isReverse,
+      };
+
+      const payload = JSON.stringify(updatedIndicator);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "indicator",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
   },
 });
 
@@ -189,12 +269,6 @@ export const insertIndicator = mutation({
       indicator.companyExternalId,
       "indicator.companyExternalId"
     );
-    if (indicator.assigneeExternalId) {
-      assertValidExternalId(
-        indicator.assigneeExternalId,
-        "indicator.assigneeExternalId"
-      );
-    }
 
     // Add to sync queue
     const payload = JSON.stringify(indicator);

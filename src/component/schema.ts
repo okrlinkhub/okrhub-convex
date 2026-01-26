@@ -80,8 +80,8 @@ export const keyResultPayloadValidator = v.object({
   // Required: External ID for mapping
   externalId: v.string(),
 
-  // Reference to parent objective (optional - can be orphaned)
-  objectiveExternalId: v.optional(v.string()),
+  // Required: Reference to parent objective
+  objectiveExternalId: v.string(),
 
   // Required: Reference to indicator
   indicatorExternalId: v.string(),
@@ -115,8 +115,8 @@ export const riskPayloadValidator = v.object({
   teamExternalId: v.string(),
   priority: PrioritySchema,
 
-  // Optional: Reference to parent key result
-  keyResultExternalId: v.optional(v.string()),
+  // Required: Reference to parent key result
+  keyResultExternalId: v.string(),
 
   // Optional: Reference to indicator for KPI trigger
   indicatorExternalId: v.optional(v.string()),
@@ -148,17 +148,16 @@ export const initiativePayloadValidator = v.object({
   createdByExternalId: v.string(), // User external ID
   priority: PrioritySchema,
 
-  // Optional: Reference to parent risk
-  riskExternalId: v.optional(v.string()),
+  // Required: Reference to parent risk
+  riskExternalId: v.string(),
 
-  // Status
-  status: v.optional(InitiativeStatusSchema),
+  // Status (required, default ON_TIME)
+  status: InitiativeStatusSchema,
   isNew: v.optional(v.boolean()),
   finishedAt: v.optional(v.number()),
 
   // Optional fields
   externalUrl: v.optional(v.string()),
-  notes: v.optional(v.string()),
 
   // Optional metadata
   createdAt: v.optional(v.number()),
@@ -181,13 +180,8 @@ export const indicatorPayloadValidator = v.object({
   symbol: v.string(),
   periodicity: PeriodicitySchema,
 
-  // Optional: Assignee
-  assigneeExternalId: v.optional(v.string()),
-
   // Optional fields
   isReverse: v.optional(v.boolean()),
-  type: v.optional(IndicatorTypeSchema),
-  notes: v.optional(v.string()),
   automationUrl: v.optional(v.string()),
   automationDescription: v.optional(v.string()),
   forecastDate: v.optional(v.number()),
@@ -248,11 +242,11 @@ export const milestonePayloadValidator = v.object({
   // Required fields
   description: v.string(),
   value: v.number(),
+  status: MilestoneStatusSchema, // Required, default ON_TIME
 
   // Optional: Achievement tracking
   achievedAt: v.optional(v.number()),
   forecastDate: v.optional(v.number()),
-  status: v.optional(MilestoneStatusSchema),
 
   // Optional metadata
   createdAt: v.optional(v.number()),
@@ -430,7 +424,7 @@ export default defineSchema({
   // Key Results - local storage before sync
   keyResults: defineTable({
     externalId: v.string(),
-    objectiveExternalId: v.optional(v.string()),
+    objectiveExternalId: v.string(), // Required: Reference to objective
     indicatorExternalId: v.string(),
     teamExternalId: v.string(),
     forecastValue: v.optional(v.number()),
@@ -453,7 +447,7 @@ export default defineSchema({
     externalId: v.string(),
     description: v.string(),
     teamExternalId: v.string(),
-    keyResultExternalId: v.optional(v.string()),
+    keyResultExternalId: v.string(), // Required: Reference to key result
     priority: PrioritySchema,
     indicatorExternalId: v.optional(v.string()),
     triggerValue: v.optional(v.number()),
@@ -476,13 +470,12 @@ export default defineSchema({
     externalId: v.string(),
     description: v.string(),
     teamExternalId: v.string(),
-    riskExternalId: v.optional(v.string()),
+    riskExternalId: v.string(), // Required: Reference to risk
     assigneeExternalId: v.string(),
     createdByExternalId: v.string(),
-    status: InitiativeStatusSchema,
+    status: InitiativeStatusSchema, // Required, default ON_TIME
     priority: PrioritySchema,
     finishedAt: v.optional(v.number()),
-    notes: v.optional(v.string()),
     slug: v.string(),
     syncStatus: SyncStatusSchema,
     createdAt: v.number(),
@@ -503,10 +496,7 @@ export default defineSchema({
     description: v.string(),
     symbol: v.string(),
     periodicity: PeriodicitySchema,
-    assigneeExternalId: v.optional(v.string()),
     isReverse: v.optional(v.boolean()),
-    type: v.optional(IndicatorTypeSchema),
-    notes: v.optional(v.string()),
     slug: v.string(),
     syncStatus: SyncStatusSchema,
     createdAt: v.number(),
@@ -550,7 +540,7 @@ export default defineSchema({
     description: v.string(),
     value: v.number(),
     forecastDate: v.optional(v.number()),
-    status: v.optional(MilestoneStatusSchema),
+    status: MilestoneStatusSchema, // Required, default ON_TIME
     achievedAt: v.optional(v.number()),
     slug: v.string(),
     syncStatus: SyncStatusSchema,

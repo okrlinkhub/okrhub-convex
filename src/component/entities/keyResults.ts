@@ -23,7 +23,7 @@ export const createKeyResult = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
-    objectiveExternalId: v.optional(v.string()),
+    objectiveExternalId: v.string(), // Required: Reference to objective
     indicatorExternalId: v.string(),
     teamExternalId: v.string(),
     forecastValue: v.optional(v.number()),
@@ -51,9 +51,7 @@ export const createKeyResult = mutation({
       // Validate external IDs
       assertValidExternalId(teamExternalId, "teamExternalId");
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
-      if (objectiveExternalId) {
-        assertValidExternalId(objectiveExternalId, "objectiveExternalId");
-      }
+      assertValidExternalId(objectiveExternalId, "objectiveExternalId");
 
       const externalId = generateExternalId(sourceApp, "keyResult");
       const slug = generateSlug(sourceApp, `kr-${sourceApp}`);
@@ -132,7 +130,7 @@ export const getKeyResultsByObjective = query({
       _id: v.id("keyResults"),
       _creationTime: v.number(),
       externalId: v.string(),
-      objectiveExternalId: v.optional(v.string()),
+      objectiveExternalId: v.string(), // Required
       indicatorExternalId: v.string(),
       teamExternalId: v.string(),
       forecastValue: v.optional(v.number()),
@@ -165,7 +163,7 @@ export const getAllKeyResults = query({
       _id: v.id("keyResults"),
       _creationTime: v.number(),
       externalId: v.string(),
-      objectiveExternalId: v.optional(v.string()),
+      objectiveExternalId: v.string(), // Required
       indicatorExternalId: v.string(),
       teamExternalId: v.string(),
       forecastValue: v.optional(v.number()),
@@ -182,6 +180,105 @@ export const getAllKeyResults = query({
       .query("keyResults")
       .filter((q) => q.eq(q.field("deletedAt"), undefined))
       .collect();
+  },
+});
+
+// ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates a key result locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateKeyResult = mutation({
+  args: {
+    externalId: v.string(),
+    objectiveExternalId: v.optional(v.string()),
+    forecastValue: v.optional(v.number()),
+    targetValue: v.optional(v.number()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId, objectiveExternalId, forecastValue, targetValue } = args;
+
+    try {
+      // Find the key result by externalId
+      const keyResult = await ctx.db
+        .query("keyResults")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!keyResult) {
+        return {
+          success: false,
+          externalId,
+          error: `Key result not found: ${externalId}`,
+        };
+      }
+
+      // Validate objectiveExternalId if provided
+      if (objectiveExternalId) {
+        assertValidExternalId(objectiveExternalId, "objectiveExternalId");
+      }
+
+      const now = Date.now();
+
+      // Update the key result
+      await ctx.db.patch(keyResult._id, {
+        ...(objectiveExternalId !== undefined && { objectiveExternalId }),
+        ...(forecastValue !== undefined && { forecastValue }),
+        ...(targetValue !== undefined && { targetValue }),
+        syncStatus: "pending",
+        updatedAt: now,
+      });
+
+      // Create payload for sync with updated values
+      const updatedKeyResult = {
+        externalId,
+        objectiveExternalId: objectiveExternalId ?? keyResult.objectiveExternalId,
+        indicatorExternalId: keyResult.indicatorExternalId,
+        teamExternalId: keyResult.teamExternalId,
+        weight: 0, // Always 0, managed by LinkHub
+        forecastValue: forecastValue ?? keyResult.forecastValue,
+        targetValue: targetValue ?? keyResult.targetValue,
+        updatedAt: now,
+      };
+
+      const payload = JSON.stringify(updatedKeyResult);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "keyResult",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
   },
 });
 
@@ -212,12 +309,10 @@ export const insertKeyResult = mutation({
       keyResult.indicatorExternalId,
       "keyResult.indicatorExternalId"
     );
-    if (keyResult.objectiveExternalId) {
-      assertValidExternalId(
-        keyResult.objectiveExternalId,
-        "keyResult.objectiveExternalId"
-      );
-    }
+    assertValidExternalId(
+      keyResult.objectiveExternalId,
+      "keyResult.objectiveExternalId"
+    );
 
     // Add to sync queue
     const payload = JSON.stringify(keyResult);

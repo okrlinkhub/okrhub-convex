@@ -84,6 +84,655 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
+function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          backgroundColor: "#1a1a1a",
+          borderRadius: "8px",
+          padding: "1.5rem",
+          maxWidth: "500px",
+          width: "90%",
+          maxHeight: "80vh",
+          overflowY: "auto",
+          border: "1px solid rgba(128, 128, 128, 0.3)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+          <h3 style={{ margin: 0 }}>{title}</h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              color: "#888",
+              padding: "0",
+              lineHeight: 1,
+            }}
+          >
+            x
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// EDIT DIALOGS
+// ============================================================================
+
+type ObjectiveItem = {
+  _id: string;
+  externalId: string;
+  title: string;
+  description: string;
+  teamExternalId: string;
+  syncStatus: string;
+};
+
+function EditObjectiveDialog({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: ObjectiveItem;
+  onClose: () => void;
+  onSave: (data: { title?: string; description?: string }) => Promise<void>;
+}) {
+  const [title, setTitle] = useState(item.title);
+  const [description, setDescription] = useState(item.description);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      title: title !== item.title ? title : undefined,
+      description: description !== item.description ? description : undefined,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Objective" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Title">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <FormField label="Description">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem", minHeight: "60px" }}
+          />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>
+            Cancel
+          </button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type KeyResultItem = {
+  _id: string;
+  externalId: string;
+  objectiveExternalId: string; // Required
+  indicatorExternalId: string;
+  teamExternalId: string;
+  forecastValue?: number;
+  targetValue?: number;
+  syncStatus: string;
+};
+
+function EditKeyResultDialog({
+  item,
+  objectives,
+  onClose,
+  onSave,
+}: {
+  item: KeyResultItem;
+  objectives: Array<{ externalId: string; title: string }>;
+  onClose: () => void;
+  onSave: (data: { objectiveExternalId?: string; forecastValue?: number; targetValue?: number }) => Promise<void>;
+}) {
+  const [objectiveExternalId, setObjectiveExternalId] = useState(item.objectiveExternalId ?? "");
+  const [forecastValue, setForecastValue] = useState(item.forecastValue?.toString() ?? "");
+  const [targetValue, setTargetValue] = useState(item.targetValue?.toString() ?? "");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      objectiveExternalId: objectiveExternalId || undefined,
+      forecastValue: forecastValue ? parseFloat(forecastValue) : undefined,
+      targetValue: targetValue ? parseFloat(targetValue) : undefined,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Key Result" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Objective">
+          <select
+            value={objectiveExternalId}
+            onChange={(e) => setObjectiveExternalId(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          >
+            <option value="">-- No Objective --</option>
+            {objectives.map((obj) => (
+              <option key={obj.externalId} value={obj.externalId}>{obj.title}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Forecast Value">
+          <input
+            type="number"
+            value={forecastValue}
+            onChange={(e) => setForecastValue(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <FormField label="Target Value">
+          <input
+            type="number"
+            value={targetValue}
+            onChange={(e) => setTargetValue(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>
+            Cancel
+          </button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type RiskItem = {
+  _id: string;
+  externalId: string;
+  description: string;
+  teamExternalId: string;
+  priority: "lowest" | "low" | "medium" | "high" | "highest";
+  keyResultExternalId: string; // Required
+  indicatorExternalId?: string;
+  triggerValue?: number;
+  triggeredIfLower?: boolean;
+  useForecastAsTrigger?: boolean;
+  isRed?: boolean;
+  syncStatus: string;
+};
+
+function EditRiskDialog({
+  item,
+  keyResults,
+  indicators,
+  onClose,
+  onSave,
+}: {
+  item: RiskItem;
+  keyResults: Array<{ externalId: string; targetValue?: number }>;
+  indicators: Array<{ externalId: string; description: string }>;
+  onClose: () => void;
+  onSave: (data: Partial<RiskItem>) => Promise<void>;
+}) {
+  const [description, setDescription] = useState(item.description);
+  const [priority, setPriority] = useState(item.priority);
+  const [keyResultExternalId, setKeyResultExternalId] = useState(item.keyResultExternalId ?? "");
+  const [indicatorExternalId, setIndicatorExternalId] = useState(item.indicatorExternalId ?? "");
+  const [triggerValue, setTriggerValue] = useState(item.triggerValue?.toString() ?? "");
+  const [triggeredIfLower, setTriggeredIfLower] = useState(item.triggeredIfLower ?? false);
+  const [useForecastAsTrigger, setUseForecastAsTrigger] = useState(item.useForecastAsTrigger ?? false);
+  const [isRed, setIsRed] = useState(item.isRed ?? false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      description,
+      priority,
+      keyResultExternalId: keyResultExternalId || undefined,
+      indicatorExternalId: indicatorExternalId || undefined,
+      triggerValue: triggerValue ? parseFloat(triggerValue) : undefined,
+      triggeredIfLower,
+      useForecastAsTrigger,
+      isRed,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Risk" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Description">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem", minHeight: "60px" }}
+          />
+        </FormField>
+        <FormField label="Priority">
+          <select value={priority} onChange={(e) => setPriority(e.target.value as typeof priority)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="lowest">Lowest</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="highest">Highest</option>
+          </select>
+        </FormField>
+        <FormField label="Key Result">
+          <select value={keyResultExternalId} onChange={(e) => setKeyResultExternalId(e.target.value)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="">-- No Key Result --</option>
+            {keyResults.map((kr) => (
+              <option key={kr.externalId} value={kr.externalId}>KR: {kr.targetValue ?? kr.externalId}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="KPI Indicator">
+          <select value={indicatorExternalId} onChange={(e) => setIndicatorExternalId(e.target.value)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="">-- No Indicator --</option>
+            {indicators.map((ind) => (
+              <option key={ind.externalId} value={ind.externalId}>{ind.description}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Trigger Value">
+          <input type="number" value={triggerValue} onChange={(e) => setTriggerValue(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input type="checkbox" checked={triggeredIfLower} onChange={(e) => setTriggeredIfLower(e.target.checked)} /> Triggered if lower
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input type="checkbox" checked={useForecastAsTrigger} onChange={(e) => setUseForecastAsTrigger(e.target.checked)} /> Use forecast
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input type="checkbox" checked={isRed} onChange={(e) => setIsRed(e.target.checked)} /> Is Red
+          </label>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type InitiativeItem = {
+  _id: string;
+  externalId: string;
+  description: string;
+  teamExternalId: string;
+  riskExternalId: string; // Required
+  assigneeExternalId: string;
+  createdByExternalId: string;
+  status: "ON_TIME" | "OVERDUE" | "FINISHED"; // Required
+  priority: "lowest" | "low" | "medium" | "high" | "highest";
+  finishedAt?: number;
+  syncStatus: string;
+};
+
+function EditInitiativeDialog({
+  item,
+  risks,
+  onClose,
+  onSave,
+}: {
+  item: InitiativeItem;
+  risks: Array<{ externalId: string; description: string }>;
+  onClose: () => void;
+  onSave: (data: Partial<InitiativeItem>) => Promise<void>;
+}) {
+  const [description, setDescription] = useState(item.description);
+  const [priority, setPriority] = useState(item.priority);
+  const [status, setStatus] = useState(item.status);
+  const [riskExternalId, setRiskExternalId] = useState(item.riskExternalId);
+  const [finishedAt, setFinishedAt] = useState(item.finishedAt ? new Date(item.finishedAt).toISOString().split("T")[0] : "");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      description,
+      priority,
+      status,
+      riskExternalId,
+      finishedAt: finishedAt ? new Date(finishedAt).getTime() : undefined,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Initiative" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Description">
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: "100%", padding: "0.5rem", minHeight: "60px" }} />
+        </FormField>
+        <FormField label="Priority">
+          <select value={priority} onChange={(e) => setPriority(e.target.value as typeof priority)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="lowest">Lowest</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="highest">Highest</option>
+          </select>
+        </FormField>
+        <FormField label="Status">
+          <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="ON_TIME">On Time</option>
+            <option value="OVERDUE">Overdue</option>
+            <option value="FINISHED">Finished</option>
+          </select>
+        </FormField>
+        <FormField label="Risk *">
+          <select value={riskExternalId} onChange={(e) => setRiskExternalId(e.target.value)} style={{ width: "100%", padding: "0.5rem" }}>
+            {risks.map((r) => (
+              <option key={r.externalId} value={r.externalId}>{r.description.substring(0, 50)}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Finished At">
+          <input type="date" value={finishedAt} onChange={(e) => setFinishedAt(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type IndicatorItem = {
+  _id: string;
+  externalId: string;
+  companyExternalId: string;
+  description: string;
+  symbol: string;
+  periodicity: "weekly" | "monthly" | "quarterly" | "semesterly" | "yearly";
+  isReverse?: boolean;
+  syncStatus: string;
+};
+
+function EditIndicatorDialog({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: IndicatorItem;
+  onClose: () => void;
+  onSave: (data: Partial<IndicatorItem>) => Promise<void>;
+}) {
+  const [description, setDescription] = useState(item.description);
+  const [symbol, setSymbol] = useState(item.symbol);
+  const [periodicity, setPeriodicity] = useState(item.periodicity);
+  const [isReverse, setIsReverse] = useState(item.isReverse ?? false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      description,
+      symbol,
+      periodicity,
+      isReverse,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Indicator" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Description">
+          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Symbol">
+          <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Periodicity">
+          <select value={periodicity} onChange={(e) => setPeriodicity(e.target.value as typeof periodicity)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="semesterly">Semesterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </FormField>
+        <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+          <input type="checkbox" checked={isReverse} onChange={(e) => setIsReverse(e.target.checked)} /> Is Reverse
+        </label>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type MilestoneItem = {
+  _id: string;
+  externalId: string;
+  indicatorExternalId: string;
+  description: string;
+  value: number;
+  forecastDate?: number;
+  status: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE"; // Required
+  achievedAt?: number;
+  syncStatus: string;
+};
+
+function EditMilestoneDialog({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: MilestoneItem;
+  onClose: () => void;
+  onSave: (data: Partial<MilestoneItem>) => Promise<void>;
+}) {
+  const [description, setDescription] = useState(item.description);
+  const [value, setValue] = useState(item.value.toString());
+  const [forecastDate, setForecastDate] = useState(item.forecastDate ? new Date(item.forecastDate).toISOString().split("T")[0] : "");
+  const [status, setStatus] = useState<"ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE">(item.status);
+  const [achievedAt, setAchievedAt] = useState(item.achievedAt ? new Date(item.achievedAt).toISOString().split("T")[0] : "");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      description,
+      value: parseFloat(value),
+      forecastDate: forecastDate ? new Date(forecastDate).getTime() : undefined,
+      status,
+      achievedAt: achievedAt ? new Date(achievedAt).getTime() : undefined,
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Milestone" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Description">
+          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Target Value">
+          <input type="number" value={value} onChange={(e) => setValue(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Status *">
+          <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} style={{ width: "100%", padding: "0.5rem" }}>
+            <option value="ON_TIME">On Time</option>
+            <option value="OVERDUE">Overdue</option>
+            <option value="ACHIEVED_ON_TIME">Achieved On Time</option>
+            <option value="ACHIEVED_LATE">Achieved Late</option>
+          </select>
+        </FormField>
+        <FormField label="Forecast Date">
+          <input type="date" value={forecastDate} onChange={(e) => setForecastDate(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Achieved At">
+          <input type="date" value={achievedAt} onChange={(e) => setAchievedAt(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type IndicatorValueItem = {
+  _id: string;
+  externalId: string;
+  indicatorExternalId: string;
+  value: number;
+  date: number;
+  syncStatus: string;
+};
+
+function EditIndicatorValueDialog({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: IndicatorValueItem;
+  onClose: () => void;
+  onSave: (data: { value?: number; date?: number }) => Promise<void>;
+}) {
+  const [value, setValue] = useState(item.value.toString());
+  const [date, setDate] = useState(new Date(item.date).toISOString().split("T")[0]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      value: parseFloat(value),
+      date: new Date(date).getTime(),
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Indicator Value" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Value">
+          <input type="number" value={value} onChange={(e) => setValue(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Date">
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+type IndicatorForecastItem = {
+  _id: string;
+  externalId: string;
+  indicatorExternalId: string;
+  value: number;
+  date: number;
+  syncStatus: string;
+};
+
+function EditIndicatorForecastDialog({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: IndicatorForecastItem;
+  onClose: () => void;
+  onSave: (data: { value?: number; date?: number }) => Promise<void>;
+}) {
+  const [value, setValue] = useState(item.value.toString());
+  const [date, setDate] = useState(new Date(item.date).toISOString().split("T")[0]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await onSave({
+      value: parseFloat(value),
+      date: new Date(date).getTime(),
+    });
+    setIsLoading(false);
+    onClose();
+  };
+
+  return (
+    <Dialog title="Edit Indicator Forecast" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Value">
+          <input type="number" value={value} onChange={(e) => setValue(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <FormField label="Date">
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem" }} />
+        </FormField>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+          <button type="button" onClick={onClose} style={{ backgroundColor: "transparent", border: "1px solid #888" }}>Cancel</button>
+          <button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save"}</button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 // ============================================================================
 // TAB NAVIGATION
 // ============================================================================
@@ -362,10 +1011,12 @@ function SetupSection({
 function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
   const objectives = useQuery(api.example.listAllObjectives);
   const createObjective = useMutation(api.example.createObjective);
+  const updateObjective = useMutation(api.example.updateObjective);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<ObjectiveItem | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -396,6 +1047,17 @@ function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
       setResult({ success: false, message: errorMessage });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveEdit = async (data: { title?: string; description?: string }) => {
+    if (!editingItem) return;
+    try {
+      await updateObjective({ externalId: editingItem.externalId, ...data });
+      setResult({ success: true, message: "Objective updated, sync status reset to pending" });
+    } catch (err) {
+      const errorMessage = err && typeof err === "object" && "message" in err ? (err as { message: string }).message : "Update failed";
+      setResult({ success: false, message: errorMessage });
     }
   };
 
@@ -435,7 +1097,10 @@ function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
           <div key={obj._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{obj.title}</strong>
-              <StatusBadge status={obj.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(obj as ObjectiveItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={obj.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "0.25rem" }}>{obj.description}</div>
             <code style={{ fontSize: "0.75rem" }}>{obj.externalId}</code>
@@ -443,6 +1108,14 @@ function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
         ))}
         {objectives?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No objectives yet</div>}
       </div>
+
+      {editingItem && (
+        <EditObjectiveDialog
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
     </div>
   );
 }
@@ -456,12 +1129,14 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
   const objectives = useQuery(api.example.listAllObjectives);
   const indicators = useQuery(api.example.listAllIndicators);
   const createKeyResult = useMutation(api.example.createKeyResult);
+  const updateKeyResult = useMutation(api.example.updateKeyResult);
   const [objectiveExternalId, setObjectiveExternalId] = useState("");
   const [selectedIndicator, setSelectedIndicator] = useState(indicatorExternalId);
   const [forecastValue, setForecastValue] = useState("");
   const [targetValue, setTargetValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<KeyResultItem | null>(null);
 
   // Use selected indicator or fallback to prop
   const effectiveIndicatorId = selectedIndicator || indicatorExternalId;
@@ -479,7 +1154,7 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
         sourceUrl: "https://example-app.local/key-results",
         teamExternalId,
         indicatorExternalId: effectiveIndicatorId,
-        objectiveExternalId: objectiveExternalId || undefined,
+        objectiveExternalId, // Required
         forecastValue: forecastValue ? parseFloat(forecastValue) : undefined,
         targetValue: targetValue ? parseFloat(targetValue) : undefined,
       });
@@ -506,19 +1181,20 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
       <h2 style={{ marginTop: 0 }}>Key Results</h2>
       
       <form onSubmit={handleCreate} style={{ marginBottom: "1.5rem" }}>
-        <FormField label="Objective (optional)">
+        <h4 style={{ marginBottom: "0.5rem", color: "#646cff" }}>Required Fields</h4>
+        <FormField label="Objective *">
           <select
             value={objectiveExternalId}
             onChange={(e) => setObjectiveExternalId(e.target.value)}
             style={{ width: "100%", padding: "0.5rem" }}
           >
-            <option value="">-- No Objective --</option>
+            <option value="">-- Select Objective --</option>
             {objectives?.map((obj) => (
               <option key={obj._id} value={obj.externalId}>{obj.title}</option>
             ))}
           </select>
         </FormField>
-        <FormField label="Indicator">
+        <FormField label="Indicator *">
           <select
             value={selectedIndicator}
             onChange={(e) => setSelectedIndicator(e.target.value)}
@@ -530,6 +1206,8 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
             ))}
           </select>
         </FormField>
+
+        <h4 style={{ marginBottom: "0.5rem", marginTop: "1rem", color: "#888" }}>Optional Fields</h4>
         <FormField label="Forecast Value">
           <input
             type="number"
@@ -548,12 +1226,12 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
             style={{ width: "100%", padding: "0.5rem" }}
           />
         </FormField>
-        <button type="submit" disabled={isLoading || !teamExternalId || !effectiveIndicatorId}>
+        <button type="submit" disabled={isLoading || !teamExternalId || !effectiveIndicatorId || !objectiveExternalId}>
           {isLoading ? "Creating..." : "Create Key Result"}
         </button>
-        {(!teamExternalId || !effectiveIndicatorId) && (
+        {(!teamExternalId || !effectiveIndicatorId || !objectiveExternalId) && (
           <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>
-            Need team and indicator
+            Need team, objective and indicator
           </span>
         )}
       </form>
@@ -566,13 +1244,28 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
           <div key={kr._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>KR: {kr.targetValue ?? "?"}</strong>
-              <StatusBadge status={kr.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(kr as KeyResultItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={kr.syncStatus} />
+              </div>
             </div>
             <code style={{ fontSize: "0.75rem" }}>{kr.externalId}</code>
           </div>
         ))}
         {keyResults?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No key results yet</div>}
       </div>
+
+      {editingItem && objectives && (
+        <EditKeyResultDialog
+          item={editingItem}
+          objectives={objectives.map(o => ({ externalId: o.externalId, title: o.title }))}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateKeyResult({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Key result updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -584,12 +1277,21 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
 function RisksSection({ teamExternalId }: { teamExternalId: string }) {
   const risks = useQuery(api.example.listAllRisks);
   const keyResults = useQuery(api.example.listAllKeyResults);
+  const indicators = useQuery(api.example.listAllIndicators);
   const createRisk = useMutation(api.example.createRisk);
+  const updateRisk = useMutation(api.example.updateRisk);
   const [description, setDescription] = useState("");
   const [keyResultExternalId, setKeyResultExternalId] = useState("");
   const [priority, setPriority] = useState<"lowest" | "low" | "medium" | "high" | "highest">("medium");
+  // Optional KPI trigger fields
+  const [indicatorExternalId, setIndicatorExternalId] = useState("");
+  const [triggerValue, setTriggerValue] = useState("");
+  const [triggeredIfLower, setTriggeredIfLower] = useState(false);
+  const [useForecastAsTrigger, setUseForecastAsTrigger] = useState(false);
+  const [isRed, setIsRed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<RiskItem | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -604,13 +1306,23 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
         sourceUrl: "https://example-app.local/risks",
         description,
         teamExternalId,
-        keyResultExternalId: keyResultExternalId || undefined,
+        keyResultExternalId, // Required
         priority,
+        indicatorExternalId: indicatorExternalId || undefined,
+        triggerValue: triggerValue ? parseFloat(triggerValue) : undefined,
+        triggeredIfLower: triggeredIfLower || undefined,
+        useForecastAsTrigger: useForecastAsTrigger || undefined,
+        isRed: isRed || undefined,
       });
       if (res.success) {
         setResult({ success: true, message: `Created risk: ${res.externalId}` });
         setDescription("");
         setKeyResultExternalId("");
+        setIndicatorExternalId("");
+        setTriggerValue("");
+        setTriggeredIfLower(false);
+        setUseForecastAsTrigger(false);
+        setIsRed(false);
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -629,7 +1341,8 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
       <h2 style={{ marginTop: 0 }}>Risks</h2>
       
       <form onSubmit={handleCreate} style={{ marginBottom: "1.5rem" }}>
-        <FormField label="Description">
+        <h4 style={{ marginBottom: "0.5rem", color: "#646cff" }}>Required Fields</h4>
+        <FormField label="Description *">
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -637,19 +1350,7 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
             style={{ width: "100%", padding: "0.5rem", minHeight: "60px" }}
           />
         </FormField>
-        <FormField label="Key Result (optional)">
-          <select
-            value={keyResultExternalId}
-            onChange={(e) => setKeyResultExternalId(e.target.value)}
-            style={{ width: "100%", padding: "0.5rem" }}
-          >
-            <option value="">-- No Key Result --</option>
-            {keyResults?.map((kr) => (
-              <option key={kr._id} value={kr.externalId}>KR: {kr.targetValue ?? kr.externalId}</option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Priority">
+        <FormField label="Priority *">
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as typeof priority)}
@@ -662,9 +1363,75 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
             <option value="highest">Highest</option>
           </select>
         </FormField>
-        <button type="submit" disabled={isLoading || !teamExternalId}>
+        <FormField label="Key Result *">
+          <select
+            value={keyResultExternalId}
+            onChange={(e) => setKeyResultExternalId(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          >
+            <option value="">-- Select Key Result --</option>
+            {keyResults?.map((kr) => (
+              <option key={kr._id} value={kr.externalId}>KR: {kr.targetValue ?? kr.externalId}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <h4 style={{ marginBottom: "0.5rem", marginTop: "1rem", color: "#888" }}>Optional Fields</h4>
+        <FormField label="KPI Trigger Indicator">
+          <select
+            value={indicatorExternalId}
+            onChange={(e) => setIndicatorExternalId(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          >
+            <option value="">-- No Indicator --</option>
+            {indicators?.map((ind) => (
+              <option key={ind._id} value={ind.externalId}>{ind.description}</option>
+            ))}
+          </select>
+        </FormField>
+        <FormField label="Trigger Value">
+          <input
+            type="number"
+            value={triggerValue}
+            onChange={(e) => setTriggerValue(e.target.value)}
+            placeholder="Value that triggers the risk"
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input
+              type="checkbox"
+              checked={triggeredIfLower}
+              onChange={(e) => setTriggeredIfLower(e.target.checked)}
+            />
+            Triggered if lower
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input
+              type="checkbox"
+              checked={useForecastAsTrigger}
+              onChange={(e) => setUseForecastAsTrigger(e.target.checked)}
+            />
+            Use forecast as trigger
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+            <input
+              type="checkbox"
+              checked={isRed}
+              onChange={(e) => setIsRed(e.target.checked)}
+            />
+            Is Red (critical)
+          </label>
+        </div>
+        <button type="submit" disabled={isLoading || !teamExternalId || !keyResultExternalId}>
           {isLoading ? "Creating..." : "Create Risk"}
         </button>
+        {(!teamExternalId || !keyResultExternalId) && (
+          <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>
+            Need team and key result
+          </span>
+        )}
       </form>
 
       {result && <ResultMessage success={result.success} message={result.message} />}
@@ -675,7 +1442,10 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
           <div key={risk._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{risk.priority.toUpperCase()}</strong>
-              <StatusBadge status={risk.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(risk as RiskItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={risk.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "0.25rem" }}>{risk.description}</div>
             <code style={{ fontSize: "0.75rem" }}>{risk.externalId}</code>
@@ -683,6 +1453,19 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
         ))}
         {risks?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No risks yet</div>}
       </div>
+
+      {editingItem && keyResults && indicators && (
+        <EditRiskDialog
+          item={editingItem}
+          keyResults={keyResults.map(kr => ({ externalId: kr.externalId, targetValue: kr.targetValue }))}
+          indicators={indicators.map(i => ({ externalId: i.externalId, description: i.description }))}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateRisk({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Risk updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -695,12 +1478,16 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
   const initiatives = useQuery(api.example.listAllInitiatives);
   const risks = useQuery(api.example.listAllRisks);
   const createInitiative = useMutation(api.example.createInitiative);
+  const updateInitiative = useMutation(api.example.updateInitiative);
   const [description, setDescription] = useState("");
   const [riskExternalId, setRiskExternalId] = useState("");
   const [priority, setPriority] = useState<"lowest" | "low" | "medium" | "high" | "highest">("medium");
   const [status, setStatus] = useState<"ON_TIME" | "OVERDUE" | "FINISHED">("ON_TIME");
+  // Optional fields
+  const [finishedAt, setFinishedAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<InitiativeItem | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -717,14 +1504,16 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
         teamExternalId,
         assigneeExternalId: userExternalId,
         createdByExternalId: userExternalId,
-        riskExternalId: riskExternalId || undefined,
+        riskExternalId, // Required
         priority,
         status,
+        finishedAt: finishedAt ? new Date(finishedAt).getTime() : undefined,
       });
       if (res.success) {
         setResult({ success: true, message: `Created initiative: ${res.externalId}` });
         setDescription("");
         setRiskExternalId("");
+        setFinishedAt("");
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -743,7 +1532,8 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
       <h2 style={{ marginTop: 0 }}>Initiatives</h2>
       
       <form onSubmit={handleCreate} style={{ marginBottom: "1.5rem" }}>
-        <FormField label="Description">
+        <h4 style={{ marginBottom: "0.5rem", color: "#646cff" }}>Required Fields</h4>
+        <FormField label="Description *">
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -751,19 +1541,7 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
             style={{ width: "100%", padding: "0.5rem", minHeight: "60px" }}
           />
         </FormField>
-        <FormField label="Risk (optional)">
-          <select
-            value={riskExternalId}
-            onChange={(e) => setRiskExternalId(e.target.value)}
-            style={{ width: "100%", padding: "0.5rem" }}
-          >
-            <option value="">-- No Risk --</option>
-            {risks?.map((risk) => (
-              <option key={risk._id} value={risk.externalId}>{risk.description.substring(0, 50)}</option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Priority">
+        <FormField label="Priority *">
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as typeof priority)}
@@ -776,6 +1554,20 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
             <option value="highest">Highest</option>
           </select>
         </FormField>
+        <FormField label="Risk *">
+          <select
+            value={riskExternalId}
+            onChange={(e) => setRiskExternalId(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          >
+            <option value="">-- Select Risk --</option>
+            {risks?.map((risk) => (
+              <option key={risk._id} value={risk.externalId}>{risk.description.substring(0, 50)}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <h4 style={{ marginBottom: "0.5rem", marginTop: "1rem", color: "#888" }}>Optional Fields</h4>
         <FormField label="Status">
           <select
             value={status}
@@ -787,10 +1579,18 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
             <option value="FINISHED">Finished</option>
           </select>
         </FormField>
-        <button type="submit" disabled={isLoading || !teamExternalId || !userExternalId}>
+        <FormField label="Finished At">
+          <input
+            type="date"
+            value={finishedAt}
+            onChange={(e) => setFinishedAt(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <button type="submit" disabled={isLoading || !teamExternalId || !userExternalId || !riskExternalId}>
           {isLoading ? "Creating..." : "Create Initiative"}
         </button>
-        {!userExternalId && <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>Set user external ID in Setup</span>}
+        {(!userExternalId || !riskExternalId) && <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>Need user ID and risk</span>}
       </form>
 
       {result && <ResultMessage success={result.success} message={result.message} />}
@@ -801,7 +1601,10 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
           <div key={init._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{init.status}</strong>
-              <StatusBadge status={init.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(init as InitiativeItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={init.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "0.25rem" }}>{init.description}</div>
             <code style={{ fontSize: "0.75rem" }}>{init.externalId}</code>
@@ -809,6 +1612,18 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
         ))}
         {initiatives?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No initiatives yet</div>}
       </div>
+
+      {editingItem && risks && (
+        <EditInitiativeDialog
+          item={editingItem}
+          risks={risks.map(r => ({ externalId: r.externalId, description: r.description }))}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateInitiative({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Initiative updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -820,9 +1635,13 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
 function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyExternalId: string; onIndicatorCreated: (id: string) => void }) {
   const indicators = useQuery(api.example.listAllIndicators);
   const createIndicator = useMutation(api.example.createIndicator);
+  const updateIndicator = useMutation(api.example.updateIndicator);
   const [description, setDescription] = useState("");
   const [symbol, setSymbol] = useState("");
   const [periodicity, setPeriodicity] = useState<"weekly" | "monthly" | "quarterly" | "semesterly" | "yearly">("monthly");
+  // Optional fields
+  const [isReverse, setIsReverse] = useState(false);
+  const [editingItem, setEditingItem] = useState<IndicatorItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -841,12 +1660,14 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
         description,
         symbol,
         periodicity,
+        isReverse: isReverse || undefined,
       });
       if (res.success) {
         setResult({ success: true, message: `Created indicator: ${res.externalId}` });
         onIndicatorCreated(res.externalId);
         setDescription("");
         setSymbol("");
+        setIsReverse(false);
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -865,7 +1686,8 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
       <h2 style={{ marginTop: 0 }}>Indicators</h2>
       
       <form onSubmit={handleCreate} style={{ marginBottom: "1.5rem" }}>
-        <FormField label="Description">
+        <h4 style={{ marginBottom: "0.5rem", color: "#646cff" }}>Required Fields</h4>
+        <FormField label="Description *">
           <input
             type="text"
             value={description}
@@ -874,7 +1696,7 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
             style={{ width: "100%", padding: "0.5rem" }}
           />
         </FormField>
-        <FormField label="Symbol">
+        <FormField label="Symbol *">
           <input
             type="text"
             value={symbol}
@@ -883,7 +1705,7 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
             style={{ width: "100%", padding: "0.5rem" }}
           />
         </FormField>
-        <FormField label="Periodicity">
+        <FormField label="Periodicity *">
           <select
             value={periodicity}
             onChange={(e) => setPeriodicity(e.target.value as typeof periodicity)}
@@ -896,6 +1718,16 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
             <option value="yearly">Yearly</option>
           </select>
         </FormField>
+
+        <h4 style={{ marginBottom: "0.5rem", marginTop: "1rem", color: "#888" }}>Optional Fields</h4>
+        <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+          <input
+            type="checkbox"
+            checked={isReverse}
+            onChange={(e) => setIsReverse(e.target.checked)}
+          />
+          Is Reverse (lower is better)
+        </label>
         <button type="submit" disabled={isLoading || !companyExternalId}>
           {isLoading ? "Creating..." : "Create Indicator"}
         </button>
@@ -910,7 +1742,10 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
           <div key={ind._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{ind.description}</strong>
-              <StatusBadge status={ind.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(ind as IndicatorItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={ind.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "0.25rem" }}>
               {ind.symbol} | {ind.periodicity}
@@ -920,6 +1755,17 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
         ))}
         {indicators?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No indicators yet</div>}
       </div>
+
+      {editingItem && (
+        <EditIndicatorDialog
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateIndicator({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Indicator updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -932,11 +1778,13 @@ function IndicatorValuesSection({ indicatorExternalId }: { indicatorExternalId: 
   const values = useQuery(api.example.listAllIndicatorValues);
   const indicators = useQuery(api.example.listAllIndicators);
   const createValue = useMutation(api.example.createIndicatorValue);
+  const updateValue = useMutation(api.example.updateIndicatorValue);
   const [selectedIndicator, setSelectedIndicator] = useState(indicatorExternalId);
   const [value, setValue] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<IndicatorValueItem | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1017,13 +1865,27 @@ function IndicatorValuesSection({ indicatorExternalId }: { indicatorExternalId: 
           <div key={val._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{val.value}</strong>
-              <StatusBadge status={val.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(val as IndicatorValueItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={val.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666" }}>{new Date(val.date).toLocaleDateString()}</div>
           </div>
         ))}
         {values?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No values yet</div>}
       </div>
+
+      {editingItem && (
+        <EditIndicatorValueDialog
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateValue({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Value updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1036,11 +1898,13 @@ function IndicatorForecastsSection({ indicatorExternalId }: { indicatorExternalI
   const forecasts = useQuery(api.example.listAllIndicatorForecasts);
   const indicators = useQuery(api.example.listAllIndicators);
   const createForecast = useMutation(api.example.createIndicatorForecast);
+  const updateForecast = useMutation(api.example.updateIndicatorForecast);
   const [selectedIndicator, setSelectedIndicator] = useState(indicatorExternalId);
   const [value, setValue] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<IndicatorForecastItem | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1121,13 +1985,27 @@ function IndicatorForecastsSection({ indicatorExternalId }: { indicatorExternalI
           <div key={fc._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{fc.value}</strong>
-              <StatusBadge status={fc.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(fc as IndicatorForecastItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={fc.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666" }}>{new Date(fc.date).toLocaleDateString()}</div>
           </div>
         ))}
         {forecasts?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No forecasts yet</div>}
       </div>
+
+      {editingItem && (
+        <EditIndicatorForecastDialog
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateForecast({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Forecast updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1140,9 +2018,16 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
   const milestones = useQuery(api.example.listAllMilestones);
   const indicators = useQuery(api.example.listAllIndicators);
   const createMilestone = useMutation(api.example.createMilestone);
+  const updateMilestone = useMutation(api.example.updateMilestone);
   const [selectedIndicator, setSelectedIndicator] = useState(indicatorExternalId);
   const [description, setDescription] = useState("");
   const [value, setValue] = useState("");
+  const [editingItem, setEditingItem] = useState<MilestoneItem | null>(null);
+  // Status is required with default ON_TIME
+  const [status, setStatus] = useState<"ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE">("ON_TIME");
+  // Optional fields
+  const [forecastDate, setForecastDate] = useState("");
+  const [achievedAt, setAchievedAt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -1161,11 +2046,17 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
         indicatorExternalId: indId,
         description,
         value: parseFloat(value),
+        forecastDate: forecastDate ? new Date(forecastDate).getTime() : undefined,
+        status, // Required, default ON_TIME
+        achievedAt: achievedAt ? new Date(achievedAt).getTime() : undefined,
       });
       if (res.success) {
         setResult({ success: true, message: `Created milestone: ${res.externalId}` });
         setDescription("");
         setValue("");
+        setForecastDate("");
+        setStatus("ON_TIME");
+        setAchievedAt("");
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1184,7 +2075,8 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
       <h2 style={{ marginTop: 0 }}>Milestones</h2>
       
       <form onSubmit={handleCreate} style={{ marginBottom: "1.5rem" }}>
-        <FormField label="Indicator">
+        <h4 style={{ marginBottom: "0.5rem", color: "#646cff" }}>Required Fields</h4>
+        <FormField label="Indicator *">
           <select
             value={selectedIndicator}
             onChange={(e) => setSelectedIndicator(e.target.value)}
@@ -1196,7 +2088,7 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
             ))}
           </select>
         </FormField>
-        <FormField label="Description">
+        <FormField label="Description *">
           <input
             type="text"
             value={description}
@@ -1205,12 +2097,42 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
             style={{ width: "100%", padding: "0.5rem" }}
           />
         </FormField>
-        <FormField label="Target Value">
+        <FormField label="Target Value *">
           <input
             type="number"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="100"
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <FormField label="Status *">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as typeof status)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          >
+            <option value="ON_TIME">On Time</option>
+            <option value="OVERDUE">Overdue</option>
+            <option value="ACHIEVED_ON_TIME">Achieved On Time</option>
+            <option value="ACHIEVED_LATE">Achieved Late</option>
+          </select>
+        </FormField>
+
+        <h4 style={{ marginBottom: "0.5rem", marginTop: "1rem", color: "#888" }}>Optional Fields</h4>
+        <FormField label="Forecast Date">
+          <input
+            type="date"
+            value={forecastDate}
+            onChange={(e) => setForecastDate(e.target.value)}
+            style={{ width: "100%", padding: "0.5rem" }}
+          />
+        </FormField>
+        <FormField label="Achieved At">
+          <input
+            type="date"
+            value={achievedAt}
+            onChange={(e) => setAchievedAt(e.target.value)}
             style={{ width: "100%", padding: "0.5rem" }}
           />
         </FormField>
@@ -1227,7 +2149,10 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
           <div key={ms._id} style={{ padding: "0.75rem", marginBottom: "0.5rem", backgroundColor: "rgba(128, 128, 128, 0.1)", borderRadius: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{ms.description}</strong>
-              <StatusBadge status={ms.syncStatus} />
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <button onClick={() => setEditingItem(ms as MilestoneItem)} style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}>Edit</button>
+                <StatusBadge status={ms.syncStatus} />
+              </div>
             </div>
             <div style={{ fontSize: "0.8rem", color: "#666" }}>Target: {ms.value}</div>
             <code style={{ fontSize: "0.75rem" }}>{ms.externalId}</code>
@@ -1235,6 +2160,17 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
         ))}
         {milestones?.length === 0 && <div style={{ color: "#666", fontStyle: "italic" }}>No milestones yet</div>}
       </div>
+
+      {editingItem && (
+        <EditMilestoneDialog
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSave={async (data) => {
+            await updateMilestone({ externalId: editingItem.externalId, ...data });
+            setResult({ success: true, message: "Milestone updated, sync status reset to pending" });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1387,7 +2323,7 @@ function App() {
 
         {activeTab === "indicators" && (
           <IndicatorsSection 
-            companyExternalId={companyExternalId} 
+            companyExternalId={companyExternalId}
             onIndicatorCreated={(id) => setIndicatorExternalId(id)} 
           />
         )}

@@ -65,7 +65,7 @@ export const createMilestone = mutation({
         description,
         value,
         forecastDate,
-        status,
+        status: status ?? "ON_TIME", // Default to ON_TIME
         achievedAt,
         slug,
         syncStatus: "pending",
@@ -78,7 +78,7 @@ export const createMilestone = mutation({
         description,
         value,
         forecastDate,
-        status,
+        status: status ?? "ON_TIME", // Default to ON_TIME
         achievedAt,
         sourceUrl,
         createdAt: now,
@@ -133,7 +133,7 @@ export const getAllMilestones = query({
       description: v.string(),
       value: v.number(),
       forecastDate: v.optional(v.number()),
-      status: v.optional(MilestoneStatusSchema),
+      status: MilestoneStatusSchema, // Required
       achievedAt: v.optional(v.number()),
       slug: v.string(),
       syncStatus: SyncStatusSchema,
@@ -147,6 +147,105 @@ export const getAllMilestones = query({
       .query("milestones")
       .filter((q) => q.eq(q.field("deletedAt"), undefined))
       .collect();
+  },
+});
+
+// ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates a milestone locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateMilestone = mutation({
+  args: {
+    externalId: v.string(),
+    description: v.optional(v.string()),
+    value: v.optional(v.number()),
+    forecastDate: v.optional(v.number()),
+    status: v.optional(MilestoneStatusSchema),
+    achievedAt: v.optional(v.number()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId, description, value, forecastDate, status, achievedAt } =
+      args;
+
+    try {
+      // Find the milestone by externalId
+      const milestone = await ctx.db
+        .query("milestones")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!milestone) {
+        return {
+          success: false,
+          externalId,
+          error: `Milestone not found: ${externalId}`,
+        };
+      }
+
+      const now = Date.now();
+
+      // Update the milestone
+      await ctx.db.patch(milestone._id, {
+        ...(description !== undefined && { description }),
+        ...(value !== undefined && { value }),
+        ...(forecastDate !== undefined && { forecastDate }),
+        ...(status !== undefined && { status }),
+        ...(achievedAt !== undefined && { achievedAt }),
+        syncStatus: "pending",
+        updatedAt: now,
+      });
+
+      // Create payload for sync with updated values
+      const updatedMilestone = {
+        externalId,
+        indicatorExternalId: milestone.indicatorExternalId,
+        description: description ?? milestone.description,
+        value: value ?? milestone.value,
+        forecastDate: forecastDate ?? milestone.forecastDate,
+        status: status ?? milestone.status,
+        achievedAt: achievedAt ?? milestone.achievedAt,
+        updatedAt: now,
+      };
+
+      const payload = JSON.stringify(updatedMilestone);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "milestone",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
   },
 });
 

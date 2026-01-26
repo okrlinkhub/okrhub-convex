@@ -30,13 +30,12 @@ export const createInitiative = mutation({
     sourceUrl: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
-    riskExternalId: v.optional(v.string()),
+    riskExternalId: v.string(), // Required: Reference to risk
     assigneeExternalId: v.string(),
     createdByExternalId: v.string(),
-    status: v.optional(InitiativeStatusSchema),
+    status: v.optional(InitiativeStatusSchema), // Optional in input, default ON_TIME
     priority: PrioritySchema,
     finishedAt: v.optional(v.number()),
-    notes: v.optional(v.string()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -57,16 +56,13 @@ export const createInitiative = mutation({
       status,
       priority,
       finishedAt,
-      notes,
     } = args;
 
     try {
       assertValidExternalId(teamExternalId, "teamExternalId");
       assertValidExternalId(assigneeExternalId, "assigneeExternalId");
       assertValidExternalId(createdByExternalId, "createdByExternalId");
-      if (riskExternalId) {
-        assertValidExternalId(riskExternalId, "riskExternalId");
-      }
+      assertValidExternalId(riskExternalId, "riskExternalId");
 
       const externalId = generateExternalId(sourceApp, "initiative");
       const slug = generateSlug(sourceApp, description.substring(0, 30));
@@ -79,10 +75,9 @@ export const createInitiative = mutation({
         riskExternalId,
         assigneeExternalId,
         createdByExternalId,
-        status: status ?? "ON_TIME",
+        status: status ?? "ON_TIME", // Default to ON_TIME
         priority,
         finishedAt,
-        notes,
         slug,
         syncStatus: "pending",
         createdAt: now,
@@ -95,10 +90,9 @@ export const createInitiative = mutation({
         riskExternalId,
         assigneeExternalId,
         createdByExternalId,
-        status: status ?? "ON_TIME",
+        status: status ?? "ON_TIME", // Default to ON_TIME
         priority,
         finishedAt,
-        notes,
         sourceUrl,
         createdAt: now,
       });
@@ -150,13 +144,12 @@ export const getAllInitiatives = query({
       externalId: v.string(),
       description: v.string(),
       teamExternalId: v.string(),
-      riskExternalId: v.optional(v.string()),
+      riskExternalId: v.string(), // Required
       assigneeExternalId: v.string(),
       createdByExternalId: v.string(),
-      status: InitiativeStatusSchema,
+      status: InitiativeStatusSchema, // Required
       priority: PrioritySchema,
       finishedAt: v.optional(v.number()),
-      notes: v.optional(v.string()),
       slug: v.string(),
       syncStatus: SyncStatusSchema,
       createdAt: v.number(),
@@ -169,6 +162,124 @@ export const getAllInitiatives = query({
       .query("initiatives")
       .filter((q) => q.eq(q.field("deletedAt"), undefined))
       .collect();
+  },
+});
+
+// ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates an initiative locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateInitiative = mutation({
+  args: {
+    externalId: v.string(),
+    description: v.optional(v.string()),
+    riskExternalId: v.optional(v.string()),
+    assigneeExternalId: v.optional(v.string()),
+    status: v.optional(InitiativeStatusSchema),
+    priority: v.optional(PrioritySchema),
+    finishedAt: v.optional(v.number()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const {
+      externalId,
+      description,
+      riskExternalId,
+      assigneeExternalId,
+      status,
+      priority,
+      finishedAt,
+    } = args;
+
+    try {
+      // Find the initiative by externalId
+      const initiative = await ctx.db
+        .query("initiatives")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!initiative) {
+        return {
+          success: false,
+          externalId,
+          error: `Initiative not found: ${externalId}`,
+        };
+      }
+
+      // Validate external IDs if provided
+      if (riskExternalId) {
+        assertValidExternalId(riskExternalId, "riskExternalId");
+      }
+      if (assigneeExternalId) {
+        assertValidExternalId(assigneeExternalId, "assigneeExternalId");
+      }
+
+      const now = Date.now();
+
+      // Update the initiative
+      await ctx.db.patch(initiative._id, {
+        ...(description !== undefined && { description }),
+        ...(riskExternalId !== undefined && { riskExternalId }),
+        ...(assigneeExternalId !== undefined && { assigneeExternalId }),
+        ...(status !== undefined && { status }),
+        ...(priority !== undefined && { priority }),
+        ...(finishedAt !== undefined && { finishedAt }),
+        syncStatus: "pending",
+        updatedAt: now,
+      });
+
+      // Create payload for sync with updated values
+      const updatedInitiative = {
+        externalId,
+        description: description ?? initiative.description,
+        teamExternalId: initiative.teamExternalId,
+        riskExternalId: riskExternalId ?? initiative.riskExternalId,
+        assigneeExternalId: assigneeExternalId ?? initiative.assigneeExternalId,
+        createdByExternalId: initiative.createdByExternalId,
+        status: status ?? initiative.status,
+        priority: priority ?? initiative.priority,
+        finishedAt: finishedAt ?? initiative.finishedAt,
+        updatedAt: now,
+      };
+
+      const payload = JSON.stringify(updatedInitiative);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "initiative",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
   },
 });
 
@@ -206,12 +317,10 @@ export const insertInitiative = mutation({
       initiative.createdByExternalId,
       "initiative.createdByExternalId"
     );
-    if (initiative.riskExternalId) {
-      assertValidExternalId(
-        initiative.riskExternalId,
-        "initiative.riskExternalId"
-      );
-    }
+    assertValidExternalId(
+      initiative.riskExternalId,
+      "initiative.riskExternalId"
+    );
 
     // Add to sync queue
     const payload = JSON.stringify(initiative);

@@ -23,6 +23,7 @@
 // Objectives
 export {
   createObjective,
+  updateObjective,
   getObjectivesByTeam,
   getAllObjectives,
   insertObjective,
@@ -31,6 +32,7 @@ export {
 // Key Results
 export {
   createKeyResult,
+  updateKeyResult,
   getKeyResultsByObjective,
   getAllKeyResults,
   insertKeyResult,
@@ -39,6 +41,7 @@ export {
 // Risks
 export {
   createRisk,
+  updateRisk,
   getRisksByKeyResult,
   getAllRisks,
   insertRisk,
@@ -47,6 +50,7 @@ export {
 // Initiatives
 export {
   createInitiative,
+  updateInitiative,
   getAllInitiatives,
   insertInitiative,
 } from "./entities/initiatives.js";
@@ -54,6 +58,7 @@ export {
 // Indicators
 export {
   createIndicator,
+  updateIndicator,
   getAllIndicators,
   insertIndicator,
 } from "./entities/indicators.js";
@@ -61,6 +66,7 @@ export {
 // Indicator Values
 export {
   createIndicatorValue,
+  updateIndicatorValue,
   getAllIndicatorValues,
   insertIndicatorValue,
 } from "./entities/indicatorValues.js";
@@ -68,12 +74,14 @@ export {
 // Indicator Forecasts
 export {
   createIndicatorForecast,
+  updateIndicatorForecast,
   getAllIndicatorForecasts,
 } from "./entities/indicatorForecasts.js";
 
 // Milestones
 export {
   createMilestone,
+  updateMilestone,
   getAllMilestones,
   insertMilestone,
 } from "./entities/milestones.js";

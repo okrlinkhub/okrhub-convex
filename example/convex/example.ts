@@ -1,6 +1,6 @@
 import { action, mutation, query } from "./_generated/server.js";
 import { components } from "./_generated/api.js";
-import { exposeApi, generateExternalId } from "../../src/client/index.js";
+import { exposeApi, generateExternalId, OKRHUB_VERSION } from "../../src/client/index.js";
 import { v } from "convex/values";
 
 /**
@@ -30,6 +30,15 @@ export const {
   createIndicatorValue,
   createIndicatorForecast,
   createMilestone,
+  // Update mutations (resets syncStatus to pending)
+  updateObjective,
+  updateKeyResult,
+  updateRisk,
+  updateInitiative,
+  updateIndicator,
+  updateIndicatorValue,
+  updateIndicatorForecast,
+  updateMilestone,
   // Query operations
   getObjectivesByTeam,
   getKeyResultsByObjective,
@@ -216,7 +225,7 @@ export const testGetMyTeams = action({
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        "X-OKRHub-Version": "0.1.0",
+        "X-OKRHub-Version": OKRHUB_VERSION,
         "X-OKRHub-Key-Prefix": apiKeyPrefix,
         "X-OKRHub-Signature": signature,
       },

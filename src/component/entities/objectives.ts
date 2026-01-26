@@ -162,6 +162,95 @@ export const getAllObjectives = query({
 });
 
 // ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates an objective locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateObjective = mutation({
+  args: {
+    externalId: v.string(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId, title, description } = args;
+
+    try {
+      // Find the objective by externalId
+      const objective = await ctx.db
+        .query("objectives")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!objective) {
+        return {
+          success: false,
+          externalId,
+          error: `Objective not found: ${externalId}`,
+        };
+      }
+
+      const now = Date.now();
+
+      // Update the objective
+      await ctx.db.patch(objective._id, {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        syncStatus: "pending",
+        updatedAt: now,
+      });
+
+      // Create payload for sync with updated values
+      const updatedObjective = {
+        externalId,
+        title: title ?? objective.title,
+        description: description ?? objective.description,
+        teamExternalId: objective.teamExternalId,
+        updatedAt: now,
+      };
+
+      const payload = JSON.stringify(updatedObjective);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "objective",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+// ============================================================================
 // PUBLIC MUTATIONS - Entry points for consumers
 // ============================================================================
 

@@ -118,6 +118,93 @@ export const getAllIndicatorValues = query({
 });
 
 // ============================================================================
+// UPDATE MUTATIONS
+// ============================================================================
+
+/**
+ * Updates an indicator value locally and queues for sync
+ * Resets syncStatus to "pending"
+ */
+export const updateIndicatorValue = mutation({
+  args: {
+    externalId: v.string(),
+    value: v.optional(v.number()),
+    date: v.optional(v.number()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    queueId: v.optional(v.id("syncQueue")),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId, value, date } = args;
+
+    try {
+      // Find the indicator value by externalId
+      const indicatorValue = await ctx.db
+        .query("indicatorValues")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!indicatorValue) {
+        return {
+          success: false,
+          externalId,
+          error: `Indicator value not found: ${externalId}`,
+        };
+      }
+
+      const now = Date.now();
+
+      // Update the indicator value
+      await ctx.db.patch(indicatorValue._id, {
+        ...(value !== undefined && { value }),
+        ...(date !== undefined && { date }),
+        syncStatus: "pending",
+      });
+
+      // Create payload for sync with updated values
+      const updatedIndicatorValue = {
+        externalId,
+        indicatorExternalId: indicatorValue.indicatorExternalId,
+        value: value ?? indicatorValue.value,
+        date: date ?? indicatorValue.date,
+      };
+
+      const payload = JSON.stringify(updatedIndicatorValue);
+
+      // Add to sync queue
+      const queueId = await ctx.db.insert("syncQueue", {
+        entityType: "indicatorValue",
+        externalId,
+        payload,
+        status: "pending",
+        attempts: 0,
+        createdAt: now,
+      });
+
+      return {
+        success: true,
+        externalId,
+        queueId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+// ============================================================================
 // PUBLIC MUTATIONS - Entry points for consumers
 // ============================================================================
 
