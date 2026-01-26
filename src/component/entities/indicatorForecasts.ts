@@ -39,7 +39,7 @@ export const createIndicatorForecast = mutation({
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
       const uuid = crypto.randomUUID();
-      const externalId = `${sourceApp}:indicator:${uuid}`;
+      const externalId = `${sourceApp}:indicatorForecast:${uuid}`;
       const now = Date.now();
 
       const localId = await ctx.db.insert("indicatorForecasts", {

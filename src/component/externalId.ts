@@ -16,6 +16,8 @@ export const ENTITY_TYPES = [
   "risk",
   "initiative",
   "indicator",
+  "indicatorValue",
+  "indicatorForecast",
   "milestone",
   "team",
   "company",
@@ -31,6 +33,8 @@ export const entityTypeValidator = v.union(
   v.literal("risk"),
   v.literal("initiative"),
   v.literal("indicator"),
+  v.literal("indicatorValue"),
+  v.literal("indicatorForecast"),
   v.literal("milestone"),
   v.literal("team"),
   v.literal("company"),
@@ -43,11 +47,11 @@ export const entityTypeValidator = v.union(
 // - entityType: one of the supported entity types
 // - uuid: UUID v4 format (36 characters with hyphens)
 const EXTERNAL_ID_REGEX =
-  /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|milestone|team|company|user):[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+  /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|indicatorValue|indicatorForecast|milestone|team|company|user):[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 
 // Simpler regex for basic validation (allows any UUID-like format)
 const EXTERNAL_ID_REGEX_SIMPLE =
-  /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|milestone|team|company|user):[a-f0-9-]{36}$/;
+  /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|indicatorValue|indicatorForecast|milestone|team|company|user):[a-f0-9-]{36}$/;
 
 /**
  * Validates an external ID format
@@ -104,7 +108,7 @@ export interface ParsedExternalId {
  */
 export function parseExternalId(id: string): ParsedExternalId | null {
   const match = id.match(
-    /^([a-z0-9-]{2,32}):(objective|keyResult|risk|initiative|indicator|milestone|team|company|user):([a-f0-9-]{36})$/
+    /^([a-z0-9-]{2,32}):(objective|keyResult|risk|initiative|indicator|indicatorValue|indicatorForecast|milestone|team|company|user):([a-f0-9-]{36})$/
   );
 
   if (!match) return null;

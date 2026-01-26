@@ -289,12 +289,18 @@ function SetupSection({
           </FormField>
           {selectedTeam && (
             <>
-              <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "0.5rem" }}>
-                <strong>Selected Team External ID:</strong>{" "}
-                <code>{selectedTeam.externalId ?? `linkhub:team:${selectedTeam.id}`}</code>
-              </div>
-              <button onClick={handleSaveTeam} disabled={isSaving} style={{ marginTop: "0.5rem" }}>
-                {isSaving ? "Saving..." : "Save Team Locally"}
+              {selectedTeam.externalId ? (
+                <div style={{ fontSize: "0.85rem", color: "#4caf50", marginBottom: "0.5rem" }}>
+                  <strong>✓ Team External ID:</strong>{" "}
+                  <code>{selectedTeam.externalId}</code>
+                </div>
+              ) : (
+                <div style={{ fontSize: "0.85rem", color: "#ff9800", marginBottom: "0.5rem", padding: "0.5rem", backgroundColor: "rgba(255, 152, 0, 0.1)", borderRadius: "4px" }}>
+                  <strong>⚠ Team not saved locally.</strong> You must save the team before creating entities.
+                </div>
+              )}
+              <button onClick={handleSaveTeam} disabled={isSaving || !!selectedTeam.externalId} style={{ marginTop: "0.5rem" }}>
+                {isSaving ? "Saving..." : selectedTeam.externalId ? "Already Saved" : "Save Team Locally"}
               </button>
               {saveResult && (
                 <div style={{ marginTop: "0.5rem", fontSize: "0.85rem", color: saveResult.startsWith("Error") ? "#f44336" : "#4caf50" }}>
@@ -332,7 +338,14 @@ function SetupSection({
         <h4 style={{ margin: 0 }}>Current Configuration</h4>
         <ul style={{ textAlign: "left", fontSize: "0.85rem", marginBottom: 0 }}>
           <li>Team: {selectedTeam?.name ?? "Not selected"}</li>
-          <li>Team External ID: {selectedTeam?.externalId ?? (selectedTeam ? `linkhub:team:${selectedTeam.id}` : "N/A")}</li>
+          <li>
+            Team External ID:{" "}
+            {selectedTeam?.externalId ? (
+              <code style={{ color: "#4caf50" }}>{selectedTeam.externalId}</code>
+            ) : (
+              <span style={{ color: "#ff9800" }}>Not saved - save team first!</span>
+            )}
+          </li>
           <li>Company External ID: {companyExternalId || "Not set"}</li>
           <li>User External ID: {userExternalId || "Not set"}</li>
           <li>Saved Local Teams: {localTeams?.length ?? 0}</li>
@@ -411,7 +424,7 @@ function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
         <button type="submit" disabled={isLoading || !teamExternalId}>
           {isLoading ? "Creating..." : "Create Objective"}
         </button>
-        {!teamExternalId && <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>Select a team first</span>}
+        {!teamExternalId && <span style={{ marginLeft: "0.5rem", color: "#f44336", fontSize: "0.85rem" }}>Save a team locally first (in Setup tab)</span>}
       </form>
 
       {result && <ResultMessage success={result.success} message={result.message} />}
@@ -1327,8 +1340,9 @@ function App() {
   const [userExternalId, setUserExternalId] = useState("example-app:user:00000000-0000-0000-0000-000000000001");
   const [indicatorExternalId, setIndicatorExternalId] = useState("");
 
-  // Compute team external ID from selected team
-  const teamExternalId = selectedTeam?.externalId ?? (selectedTeam ? `linkhub:team:${selectedTeam.id}` : "");
+  // Team external ID is ONLY available from saved local teams
+  // Users MUST save a team locally before creating entities
+  const teamExternalId = selectedTeam?.externalId ?? "";
 
   return (
     <>

@@ -38,9 +38,8 @@ export const createIndicatorValue = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
-      // Generate externalId - we use "indicator" type as base since indicatorValue isn't in the list
       const uuid = crypto.randomUUID();
-      const externalId = `${sourceApp}:indicator:${uuid}`;
+      const externalId = `${sourceApp}:indicatorValue:${uuid}`;
       const now = Date.now();
 
       const localId = await ctx.db.insert("indicatorValues", {

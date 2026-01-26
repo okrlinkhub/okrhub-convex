@@ -198,7 +198,7 @@ export const indicatorPayloadValidator = v.object({
 
 /**
  * Indicator Value payload for tracking
- * Maps to LinkHub's indicatorValues table
+ * Maps to LinkHub's values table
  */
 export const indicatorValuePayloadValidator = v.object({
   // Required: External ID for mapping
@@ -217,7 +217,7 @@ export const indicatorValuePayloadValidator = v.object({
 
 /**
  * Indicator Forecast payload
- * Maps to LinkHub's indicatorForecasts table
+ * Maps to LinkHub's forecasts table
  */
 export const indicatorForecastPayloadValidator = v.object({
   // Required: External ID for mapping
