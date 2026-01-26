@@ -1,5 +1,5 @@
 {
-  "name": "@linkhub/okrhub",
+  "name": "@okrlinkhub/okrhub",
   "description": "Convex component for syncing OKR data (Objectives, Key Results, Risks, Initiatives) to LinkHub via secure HMAC-authenticated API.",
   "repository": "github:okrlinkhub/okrhub-convex",
   "homepage": "https://github.com/okrlinkhub/okrhub-convex#readme",

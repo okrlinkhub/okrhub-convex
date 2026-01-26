@@ -153,7 +153,7 @@ function getConfig(options?: ExposeApiOptions): OKRHubConfig {
  * ```typescript
  * // convex/okrhub.ts
  * import { components } from "./_generated/api";
- * import { exposeApi } from "@linkhub/okrhub";
+ * import { exposeApi } from "@okrlinkhub/okrhub";
  *
  * export const { insertObjective, insertKeyResult, processSyncQueue } =
  *   exposeApi(components.okrhub, {
@@ -931,7 +931,7 @@ export function exposeApi(
  * // convex/http.ts
  * import { httpRouter } from "convex/server";
  * import { components } from "./_generated/api";
- * import { registerRoutes } from "@linkhub/okrhub";
+ * import { registerRoutes } from "@okrlinkhub/okrhub";
  *
  * const http = httpRouter();
  * registerRoutes(http, components.okrhub, { pathPrefix: "/api/okrhub" });

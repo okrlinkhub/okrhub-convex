@@ -8,7 +8,7 @@ import { v } from "convex/values";
  *
  * This file demonstrates how to use the component in a consumer application.
  * During development, imports use relative paths. When published, consumers
- * will import from "@linkhub/okrhub".
+ * will import from "@okrlinkhub/okrhub".
  */
 
 // Re-export the component's API without authentication for testing

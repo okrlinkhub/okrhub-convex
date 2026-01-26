@@ -1,8 +1,11 @@
-# @linkhub/okrhub
+# @okrlinkhub/okrhub
 
-Convex component for syncing OKR data (Objectives, Key Results, Risks, Initiatives) to LinkHub via secure HMAC-authenticated API.
+> Convex component for syncing OKR data (Objectives, Key Results, Risks, Initiatives) to LinkHub via secure HMAC-authenticated API.
 
-[![npm version](https://badge.fury.io/js/@linkhub%2Fokrhub.svg)](https://badge.fury.io/js/@linkhub%2Fokrhub)
+[![npm version](https://badge.fury.io/js/@okrlinkhub%2Fokrhub.svg)](https://badge.fury.io/js/@okrlinkhub%2Fokrhub)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Convex](https://img.shields.io/badge/Convex-1.31+-purple.svg)](https://convex.dev/)
 
 ## Overview
 
@@ -18,7 +21,7 @@ OKRHub is a Convex component that enables external applications to sync their OK
 
 ```
 ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
-│   Your App          │     │   @linkhub/okrhub   │     │      LinkHub        │
+│   Your App          │     │   @okrlinkhub/okrhub   │     │      LinkHub        │
 │   (Convex)          │     │    (Component)      │     │   (Server)          │
 └─────────────────────┘     └─────────────────────┘     └─────────────────────┘
          │                           │                           │
@@ -47,10 +50,28 @@ OKRHub is a Convex component that enables external applications to sync their OK
          │ ◄──────────────────────── │                           │
 ```
 
+## Requirements
+
+- Node.js 18+ 
+- Convex 1.31.6+
+- React 18.3.1+ or 19.0.0+ (for React hooks)
+
 ## Installation
 
 ```bash
-npm install @linkhub/okrhub convex
+npm install @okrlinkhub/okrhub convex
+```
+
+Or with yarn:
+
+```bash
+yarn add @okrlinkhub/okrhub convex
+```
+
+Or with pnpm:
+
+```bash
+pnpm add @okrlinkhub/okrhub convex
 ```
 
 ## Quick Start
@@ -60,7 +81,7 @@ npm install @linkhub/okrhub convex
 ```typescript
 // convex/convex.config.ts
 import { defineApp } from "convex/server";
-import okrhub from "@linkhub/okrhub/convex.config";
+import okrhub from "@okrlinkhub/okrhub/convex.config";
 
 const app = defineApp();
 app.use(okrhub);
@@ -73,7 +94,7 @@ export default app;
 ```typescript
 // convex/okrhub.ts
 import { components } from "./_generated/api";
-import { exposeApi } from "@linkhub/okrhub";
+import { exposeApi } from "@okrlinkhub/okrhub";
 
 export const {
   insertObjective,
@@ -110,7 +131,7 @@ LINKHUB_SIGNING_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ### 4. Use in your app
 
 ```typescript
-import { generateExternalId } from "@linkhub/okrhub";
+import { generateExternalId } from "@okrlinkhub/okrhub";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
@@ -176,7 +197,7 @@ import {
   generateExternalId, 
   validateExternalId, 
   parseExternalId 
-} from "@linkhub/okrhub";
+} from "@okrlinkhub/okrhub";
 
 // Generate a new external ID
 const id = generateExternalId("my-app", "objective");
@@ -392,7 +413,7 @@ Register HTTP routes for REST API access:
 // convex/http.ts
 import { httpRouter } from "convex/server";
 import { components } from "./_generated/api";
-import { registerRoutes } from "@linkhub/okrhub";
+import { registerRoutes } from "@okrlinkhub/okrhub";
 
 const http = httpRouter();
 registerRoutes(http, components.okrhub, { pathPrefix: "/api/okrhub" });
@@ -412,7 +433,7 @@ import {
   initiativePayloadValidator,
   indicatorPayloadValidator,
   milestonePayloadValidator,
-} from "@linkhub/okrhub/schema";
+} from "@okrlinkhub/okrhub/schema";
 ```
 
 ## Development
@@ -444,9 +465,80 @@ npm install
 npm run dev
 ```
 
+## API Reference
+
+### Core Functions
+
+#### `exposeApi(component, options)`
+
+Exposes the OKRHub component API with authentication.
+
+```typescript
+import { exposeApi } from "@okrlinkhub/okrhub";
+import { components } from "./_generated/api";
+
+export const {
+  insertObjective,
+  insertKeyResult,
+  insertRisk,
+  insertInitiative,
+  insertIndicator,
+  insertMilestone,
+  insertIndicatorValue,
+  insertIndicatorForecast,
+  processSyncQueue,
+  getPendingSyncItems,
+} = exposeApi(components.okrhub, {
+  auth: async (ctx, operation) => {
+    // Your authentication logic
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+  },
+});
+```
+
+#### External ID Utilities
+
+```typescript
+import {
+  generateExternalId,
+  validateExternalId,
+  parseExternalId,
+  extractSourceApp,
+  extractEntityType,
+  sameSourceApp,
+  OKRHUB_VERSION,
+  ENTITY_TYPES,
+} from "@okrlinkhub/okrhub";
+```
+
+#### HTTP Routes Registration
+
+```typescript
+import { registerRoutes } from "@okrlinkhub/okrhub";
+
+registerRoutes(httpRouter, components.okrhub, {
+  pathPrefix: "/api/okrhub",
+});
+```
+
+### React Hooks
+
+```typescript
+import { useOKRHub } from "@okrlinkhub/okrhub/react";
+import { useQuery } from "convex/react";
+
+function MyComponent() {
+  const { getPendingSyncItems } = useOKRHub();
+  const pendingItems = useQuery(getPendingSyncItems);
+  
+  // Use pendingItems...
+}
+```
+
 ## Related Packages
 
-- [@linkhub/ui-kit](https://github.com/okrlinkhub/linkhub-ui-kit) - Dumb React components for displaying OKR data
+- [@okrlinkhub/ui-kit](https://github.com/okrlinkhub/linkhub-ui-kit) - React components for displaying OKR data
 
 ## Troubleshooting
 
@@ -463,8 +555,25 @@ Check that:
 
 ### "Client version too old"
 
-Update the component: `npm update @linkhub/okrhub`
+Update the component: `npm update @okrlinkhub/okrhub`
+
+### Queue items stuck in "processing" state
+
+This can happen if the processing action crashes. Reset them manually:
+
+```typescript
+// In Convex Dashboard
+await ctx.runMutation(internal.okrhub.sync.resetStuckItems, {});
+```
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Versioning
+
+This project uses [Semantic Versioning](https://semver.org/). For the versions available, see the [CHANGELOG.md](CHANGELOG.md) file.
 
 ## License
 
-Apache-2.0
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
