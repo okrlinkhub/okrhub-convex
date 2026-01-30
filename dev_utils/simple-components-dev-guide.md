@@ -454,6 +454,156 @@ export const listEntities = query({
 
 ---
 
+## 👥 Sviluppo Parallelo tra Team
+
+Quando più team lavorano su componenti diversi che dipendono l'uno dall'altro, **nessuno deve aspettare**.
+
+### Il Problema
+
+```
+Team Prescrizioni (lento, 3 settimane)     Team Calendario (veloce, 1 settimana)
+───────────────────────────────────────     ──────────────────────────────────────
+Backend complesso, validazioni              Deve mostrare: "Appuntamento con 
+integrazioni farmacie                       prescrizione: ???"
+
+                                            Senza soluzione: BLOCCATO 3 settimane
+```
+
+### La Soluzione: Modalità "Dati Finti"
+
+Ogni componente pubblica **subito** una versione minimale con una modalità "finta" che ritorna dati plausibili.
+
+```typescript
+// src/client/index.ts
+export class MyComponent {
+  constructor(
+    private component: ComponentApi,
+    private options: {
+      getUserId: (ctx: any) => Promise<string>;
+      useDummyData?: boolean; // 👈 Modalità finta
+    }
+  ) {}
+
+  async getEntity(ctx: any, args: { entityId: string }) {
+    // Se modalità finta, non chiama il database
+    if (this.options.useDummyData) {
+      return {
+        _id: args.entityId,
+        name: "Entità di esempio",
+        description: "⚠️ DATO FINTO - Componente non ancora pronto",
+        createdAt: Date.now(),
+      };
+    }
+
+    // Altrimenti, chiama il vero backend
+    return ctx.runQuery(this.component.entities.get, args);
+  }
+}
+```
+
+### Come si Usa
+
+**Team che dipende da un componente non pronto:**
+
+```typescript
+// primoup-core/convex/api.ts
+import { MyComponent } from "@primohub/my-component";
+
+const myComponent = new MyComponent(components.myComponent, {
+  getUserId: getAuthUserId,
+  useDummyData: process.env.MY_COMPONENT_FINTO === "true", // 👈 Attiva finte
+});
+```
+
+```bash
+# .env.local (sviluppo)
+MY_COMPONENT_FINTO=true
+
+# Quando il componente è pronto
+MY_COMPONENT_FINTO=false
+```
+
+### Timeline di Sviluppo
+
+```
+Giorno 1: Kickoff
+───────────────────────────────────────────────────────────────────
+Team Componente A              Team Componente B              Team Core
+────────────────               ────────────────               ─────────
+Pubblica v0.1                  Pubblica v0.1                  npm install
+├─ Schema base                 ├─ Schema base                 Attiva *_FINTO=true
+├─ 2 query                     ├─ 2 query                     Sviluppa UI
+└─ Dati finti                  └─ Dati finti
+
+Giorno 5: Feedback
+───────────────────────────────────────────────────────────────────
+Team Componente A ◄── "Manca campo 'scadenza'" ── Team Core
+                                   │
+                                   ▼
+                    Aggiorna schema, pubblica v0.2
+
+Giorno 15: Pronto
+───────────────────────────────────────────────────────────────────
+Team Core toglie i flag *_FINTO, usa dati reali
+```
+
+### Regole per i Dati Finti
+
+| ✅ Fare | ❌ Non fare |
+|---------|-------------|
+| Dati realistici (nomi, date plausibili) | Dati palesemente fake ("test123") |
+| Stessa struttura dei dati reali | Struttura diversa |
+| Note che indicano "⚠️ DATO FINTO" | Nascondere che sono finti |
+| Console.log per debug | Silenzio totale |
+
+```typescript
+// ✅ CORRETTO - Dati finti realistici
+return {
+  _id: "finta_1",
+  farmaco: "Amoxicillina 500mg",           // Nome reale
+  dosaggio: "1 compressa ogni 8 ore",      // Formato reale
+  data: Date.now() - 86400000,             // Data plausibile
+  note: "⚠️ DATO FINTO - Prescrizioni v0.1",
+};
+
+// ❌ SBAGLIATO - Dati inutili
+return {
+  _id: "test",
+  farmaco: "farmaco",
+  dosaggio: "dosaggio",
+  data: 0,
+};
+```
+
+### Checklist Team
+
+**Team che sviluppa il componente:**
+```
+□ Pubblica v0.1 entro 2 giorni (anche se fa poco)
+□ Aggiungi useDummyData nel client wrapper
+□ Dati finti realistici e con stessa struttura
+□ Documenta: quali campi arriveranno in v0.2, v0.3
+```
+
+**Team che usa il componente:**
+```
+□ Installa subito, non aspettare che sia completo
+□ Attiva *_FINTO=true nel .env.local
+□ Sviluppa assumendo che i dati siano "quasi veri"
+□ Feedback rapido: "serve campo X" entro 24h
+```
+
+### Vantaggi
+
+| Prima (bloccati) | Ora (paralleli) |
+|------------------|-----------------|
+| Team B aspetta Team A | Team B usa dati finti, procede |
+| "È pronto?" ogni giorno | Feedback strutturato su campi mancanti |
+| Codice fake sparso ovunque | Dati finti centralizzati nei client |
+| Integrazione a fine progetto | Integrazione incrementale |
+
+---
+
 ## 📋 Checklist
 
 ```
@@ -462,7 +612,8 @@ export const listEntities = query({
 □ TUTTA la logica in src/component/, non in example/
 □ example/convex/api.ts ha < 30 linee (solo wrapper + auth)
 □ package.json con exports e @convex-dev/component-source
-□ Classe wrapper in src/client/ 
+□ Classe wrapper in src/client/ con opzione useDummyData
+□ Dati finti realistici per sviluppo parallelo
 □ example/ che importa da "@your-package/convex.config"
 □ Smoke test che chiama funzioni del componente
 □ npm run build genera dist/ senza errori
