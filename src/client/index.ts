@@ -115,22 +115,52 @@ interface ExposeApiOptions {
   ) => Promise<void>;
 
   /**
-   * Configuration for LinkHub connection
-   * If not provided, uses environment variables:
+   * Configuration for LinkHub connection (static object)
+   * WARNING: If using this option, ensure it's evaluated at runtime, not module-level!
+   * Prefer using `getConfig` function instead.
+   * If neither is provided, uses environment variables:
    * - LINKHUB_API_URL
-   * - LINKHUB_API_KEY
+   * - LINKHUB_API_KEY_PREFIX
+   * - LINKHUB_SIGNING_SECRET
    */
   config?: OKRHubConfig;
+
+  /**
+   * Configuration getter function for LinkHub connection (RECOMMENDED)
+   * This function is called at runtime, ensuring environment variables are available.
+   * Use this instead of `config` when environment variables might not be available
+   * at module load time.
+   * 
+   * @example
+   * ```typescript
+   * exposeApi(components.okrhub, {
+   *   getConfig: () => ({
+   *     endpointUrl: process.env.LINKHUB_API_URL!,
+   *     apiKeyPrefix: process.env.LINKHUB_API_KEY_PREFIX!,
+   *     signingSecret: process.env.LINKHUB_SIGNING_SECRET!,
+   *   }),
+   * });
+   * ```
+   */
+  getConfig?: () => OKRHubConfig;
 }
 
 /**
- * Get configuration from environment or options
+ * Get configuration from options or environment
+ * Priority: options.getConfig() > options.config > process.env
  */
-function getConfig(options?: ExposeApiOptions): OKRHubConfig {
+function resolveConfig(options?: ExposeApiOptions): OKRHubConfig {
+  // Priority 1: Use getConfig function if provided (called at runtime)
+  if (options?.getConfig) {
+    return options.getConfig();
+  }
+
+  // Priority 2: Use static config if provided
   if (options?.config) {
     return options.config;
   }
 
+  // Priority 3: Read from environment variables
   const endpointUrl = process.env.LINKHUB_API_URL;
   const apiKeyPrefix = process.env.LINKHUB_API_KEY_PREFIX;
   const signingSecret = process.env.LINKHUB_SIGNING_SECRET;
@@ -139,7 +169,7 @@ function getConfig(options?: ExposeApiOptions): OKRHubConfig {
     throw new Error(
       "OKRHub configuration missing. " +
         "Set LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, and LINKHUB_SIGNING_SECRET environment variables, " +
-        "or pass config in exposeApi options."
+        "or pass config/getConfig in exposeApi options."
     );
   }
 
@@ -390,7 +420,7 @@ export function exposeApi(
           await options.auth(ctx, { type: "sync", entityType: "queue" });
         }
 
-        const config = getConfig(options);
+        const config = resolveConfig(options);
 
         return await ctx.runAction(component.okrhub.processSyncQueue, {
           endpointUrl: config.endpointUrl,
@@ -868,7 +898,7 @@ export function exposeApi(
         email: v.string(),
       },
       handler: async (ctx, args) => {
-        const config = getConfig(options);
+        const config = resolveConfig(options);
 
         // Create signature payload (query string without leading ?)
         const queryString = `email=${encodeURIComponent(args.email)}`;
