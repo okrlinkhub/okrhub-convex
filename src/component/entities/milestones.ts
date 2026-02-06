@@ -10,7 +10,6 @@ import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
-  milestonePayloadValidator,
   MilestoneStatusSchema,
   SyncStatusSchema,
 } from "../schema.js";
@@ -54,6 +53,23 @@ export const createMilestone = mutation({
 
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
+
+      // Validate parent hierarchy: indicator must exist in local tables
+      const parentIndicator = await ctx.db
+        .query("indicators")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", indicatorExternalId)
+        )
+        .first();
+
+      if (!parentIndicator) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"milestones">,
+          error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
+        };
+      }
 
       const externalId = generateExternalId(sourceApp, "milestone");
       const slug = generateSlug(sourceApp, description);
@@ -249,48 +265,3 @@ export const updateMilestone = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert a milestone into LinkHub
- */
-export const insertMilestone = mutation({
-  args: {
-    milestone: milestonePayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { milestone } = args;
-
-    // Validate external IDs
-    assertValidExternalId(milestone.externalId, "milestone.externalId");
-    assertValidExternalId(
-      milestone.indicatorExternalId,
-      "milestone.indicatorExternalId"
-    );
-
-    // Add to sync queue
-    const payload = JSON.stringify(milestone);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "milestone",
-      externalId: milestone.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: milestone.externalId,
-      queueId,
-    };
-  },
-});

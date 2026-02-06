@@ -23,6 +23,23 @@ import type { FunctionReference } from "convex/server";
  */
 export type ComponentApi<Name extends string | undefined = string | undefined> =
   {
+    config: {
+      clearConfig: FunctionReference<"mutation", "internal", {}, null, Name>;
+      configure: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          apiKeyPrefix: string;
+          autoSyncEnabled?: boolean;
+          endpointUrl: string;
+          signingSecret: string;
+          sourceApp?: string;
+          syncIntervalMs?: number;
+        },
+        null,
+        Name
+      >;
+    };
     entities: {
       batch: {
         insertBatch: FunctionReference<
@@ -563,306 +580,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
-        insertBatch: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            batch: {
-              companies?: Array<{
-                createdAt?: number;
-                externalId: string;
-                name: string;
-              }>;
-              indicatorForecasts?: Array<{
-                createdAt?: number;
-                date: number;
-                externalId: string;
-                indicatorExternalId: string;
-                value: number;
-              }>;
-              indicatorValues?: Array<{
-                createdAt?: number;
-                date: number;
-                externalId: string;
-                indicatorExternalId: string;
-                value: number;
-              }>;
-              indicators?: Array<{
-                automationDescription?: string;
-                automationUrl?: string;
-                companyExternalId: string;
-                createdAt?: number;
-                description: string;
-                externalId: string;
-                forecastDate?: number;
-                isReverse?: boolean;
-                periodicity:
-                  | "weekly"
-                  | "monthly"
-                  | "quarterly"
-                  | "semesterly"
-                  | "yearly";
-                symbol: string;
-              }>;
-              initiatives?: Array<{
-                assigneeExternalId: string;
-                createdAt?: number;
-                createdByExternalId: string;
-                description: string;
-                externalId: string;
-                externalUrl?: string;
-                finishedAt?: number;
-                isNew?: boolean;
-                priority: "lowest" | "low" | "medium" | "high" | "highest";
-                riskExternalId: string;
-                status: "ON_TIME" | "OVERDUE" | "FINISHED";
-                teamExternalId: string;
-                updatedAt?: number;
-              }>;
-              keyResults?: Array<{
-                createdAt?: number;
-                externalId: string;
-                forecastValue?: number;
-                impact?: number;
-                indicatorExternalId: string;
-                objectiveExternalId: string;
-                targetValue?: number;
-                teamExternalId: string;
-                updatedAt?: number;
-                weight: number;
-              }>;
-              milestones?: Array<{
-                achievedAt?: number;
-                createdAt?: number;
-                description: string;
-                externalId: string;
-                forecastDate?: number;
-                indicatorExternalId: string;
-                status:
-                  | "ON_TIME"
-                  | "OVERDUE"
-                  | "ACHIEVED_ON_TIME"
-                  | "ACHIEVED_LATE";
-                updatedAt?: number;
-                value: number;
-              }>;
-              objectives?: Array<{
-                createdAt?: number;
-                description: string;
-                externalId: string;
-                teamExternalId: string;
-                title: string;
-                updatedAt?: number;
-              }>;
-              risks?: Array<{
-                createdAt?: number;
-                description: string;
-                externalId: string;
-                indicatorExternalId?: string;
-                isRed?: boolean;
-                keyResultExternalId: string;
-                priority: "lowest" | "low" | "medium" | "high" | "highest";
-                teamExternalId: string;
-                triggerValue?: number;
-                triggeredIfLower?: boolean;
-                useForecastAsTrigger?: boolean;
-              }>;
-              teams?: Array<{
-                companyExternalId: string;
-                createdAt?: number;
-                externalId: string;
-                name: string;
-              }>;
-              users?: Array<{
-                createdAt?: number;
-                email: string;
-                externalId: string;
-                name?: string;
-                surname?: string;
-              }>;
-            };
-          },
-          { errors: Array<string>; queueIds: Array<string>; success: boolean },
-          Name
-        >;
-        insertIndicator: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            indicator: {
-              automationDescription?: string;
-              automationUrl?: string;
-              companyExternalId: string;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              isReverse?: boolean;
-              periodicity:
-                | "weekly"
-                | "monthly"
-                | "quarterly"
-                | "semesterly"
-                | "yearly";
-              symbol: string;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertIndicatorValue: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            indicatorValue: {
-              createdAt?: number;
-              date: number;
-              externalId: string;
-              indicatorExternalId: string;
-              value: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertInitiative: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            initiative: {
-              assigneeExternalId: string;
-              createdAt?: number;
-              createdByExternalId: string;
-              description: string;
-              externalId: string;
-              externalUrl?: string;
-              finishedAt?: number;
-              isNew?: boolean;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId: string;
-              status: "ON_TIME" | "OVERDUE" | "FINISHED";
-              teamExternalId: string;
-              updatedAt?: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertKeyResult: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            keyResult: {
-              createdAt?: number;
-              externalId: string;
-              forecastValue?: number;
-              impact?: number;
-              indicatorExternalId: string;
-              objectiveExternalId: string;
-              targetValue?: number;
-              teamExternalId: string;
-              updatedAt?: number;
-              weight: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertMilestone: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            milestone: {
-              achievedAt?: number;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              indicatorExternalId: string;
-              status:
-                | "ON_TIME"
-                | "OVERDUE"
-                | "ACHIEVED_ON_TIME"
-                | "ACHIEVED_LATE";
-              updatedAt?: number;
-              value: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertObjective: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            objective: {
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              teamExternalId: string;
-              title: string;
-              updatedAt?: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
-        insertRisk: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            risk: {
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              indicatorExternalId?: string;
-              isRed?: boolean;
-              keyResultExternalId: string;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              teamExternalId: string;
-              triggerValue?: number;
-              triggeredIfLower?: boolean;
-              useForecastAsTrigger?: boolean;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
       };
       indicatorForecasts: {
         createIndicatorForecast: FunctionReference<
@@ -965,36 +682,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
-        insertIndicator: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            indicator: {
-              automationDescription?: string;
-              automationUrl?: string;
-              companyExternalId: string;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              isReverse?: boolean;
-              periodicity:
-                | "weekly"
-                | "monthly"
-                | "quarterly"
-                | "semesterly"
-                | "yearly";
-              symbol: string;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
         updateIndicator: FunctionReference<
           "mutation",
           "internal",
@@ -1053,26 +740,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             syncStatus: "pending" | "synced" | "failed";
             value: number;
           }>,
-          Name
-        >;
-        insertIndicatorValue: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            indicatorValue: {
-              createdAt?: number;
-              date: number;
-              externalId: string;
-              indicatorExternalId: string;
-              value: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
           Name
         >;
         updateIndicatorValue: FunctionReference<
@@ -1135,34 +802,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             teamExternalId: string;
             updatedAt?: number;
           }>,
-          Name
-        >;
-        insertInitiative: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            initiative: {
-              assigneeExternalId: string;
-              createdAt?: number;
-              createdByExternalId: string;
-              description: string;
-              externalId: string;
-              externalUrl?: string;
-              finishedAt?: number;
-              isNew?: boolean;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId: string;
-              status: "ON_TIME" | "OVERDUE" | "FINISHED";
-              teamExternalId: string;
-              updatedAt?: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
           Name
         >;
         updateInitiative: FunctionReference<
@@ -1250,31 +889,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
-        insertKeyResult: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            keyResult: {
-              createdAt?: number;
-              externalId: string;
-              forecastValue?: number;
-              impact?: number;
-              indicatorExternalId: string;
-              objectiveExternalId: string;
-              targetValue?: number;
-              teamExternalId: string;
-              updatedAt?: number;
-              weight: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
         updateKeyResult: FunctionReference<
           "mutation",
           "internal",
@@ -1344,34 +958,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             updatedAt?: number;
             value: number;
           }>,
-          Name
-        >;
-        insertMilestone: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            milestone: {
-              achievedAt?: number;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              indicatorExternalId: string;
-              status:
-                | "ON_TIME"
-                | "OVERDUE"
-                | "ACHIEVED_ON_TIME"
-                | "ACHIEVED_LATE";
-              updatedAt?: number;
-              value: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
           Name
         >;
         updateMilestone: FunctionReference<
@@ -1454,27 +1040,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             title: string;
             updatedAt?: number;
           }>,
-          Name
-        >;
-        insertObjective: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            objective: {
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              teamExternalId: string;
-              title: string;
-              updatedAt?: number;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
           Name
         >;
         updateObjective: FunctionReference<
@@ -1564,32 +1129,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
-        insertRisk: FunctionReference<
-          "mutation",
-          "internal",
-          {
-            risk: {
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              indicatorExternalId?: string;
-              isRed?: boolean;
-              keyResultExternalId: string;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              teamExternalId: string;
-              triggerValue?: number;
-              triggeredIfLower?: boolean;
-              useForecastAsTrigger?: boolean;
-            };
-          },
-          {
-            error?: string;
-            externalId: string;
-            queueId?: string;
-            success: boolean;
-          },
-          Name
-        >;
         updateRisk: FunctionReference<
           "mutation",
           "internal",
@@ -1615,6 +1154,21 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       };
     };
     okrhub: {
+      clearConfig: FunctionReference<"mutation", "internal", {}, null, Name>;
+      configure: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          apiKeyPrefix: string;
+          autoSyncEnabled?: boolean;
+          endpointUrl: string;
+          signingSecret: string;
+          sourceApp?: string;
+          syncIntervalMs?: number;
+        },
+        null,
+        Name
+      >;
       createIndicator: FunctionReference<
         "mutation",
         "internal",
@@ -2039,357 +1593,16 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         }>,
         Name
       >;
-      insertBatch: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          batch: {
-            companies?: Array<{
-              createdAt?: number;
-              externalId: string;
-              name: string;
-            }>;
-            indicatorForecasts?: Array<{
-              createdAt?: number;
-              date: number;
-              externalId: string;
-              indicatorExternalId: string;
-              value: number;
-            }>;
-            indicatorValues?: Array<{
-              createdAt?: number;
-              date: number;
-              externalId: string;
-              indicatorExternalId: string;
-              value: number;
-            }>;
-            indicators?: Array<{
-              automationDescription?: string;
-              automationUrl?: string;
-              companyExternalId: string;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              isReverse?: boolean;
-              periodicity:
-                | "weekly"
-                | "monthly"
-                | "quarterly"
-                | "semesterly"
-                | "yearly";
-              symbol: string;
-            }>;
-            initiatives?: Array<{
-              assigneeExternalId: string;
-              createdAt?: number;
-              createdByExternalId: string;
-              description: string;
-              externalId: string;
-              externalUrl?: string;
-              finishedAt?: number;
-              isNew?: boolean;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              riskExternalId: string;
-              status: "ON_TIME" | "OVERDUE" | "FINISHED";
-              teamExternalId: string;
-              updatedAt?: number;
-            }>;
-            keyResults?: Array<{
-              createdAt?: number;
-              externalId: string;
-              forecastValue?: number;
-              impact?: number;
-              indicatorExternalId: string;
-              objectiveExternalId: string;
-              targetValue?: number;
-              teamExternalId: string;
-              updatedAt?: number;
-              weight: number;
-            }>;
-            milestones?: Array<{
-              achievedAt?: number;
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              forecastDate?: number;
-              indicatorExternalId: string;
-              status:
-                | "ON_TIME"
-                | "OVERDUE"
-                | "ACHIEVED_ON_TIME"
-                | "ACHIEVED_LATE";
-              updatedAt?: number;
-              value: number;
-            }>;
-            objectives?: Array<{
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              teamExternalId: string;
-              title: string;
-              updatedAt?: number;
-            }>;
-            risks?: Array<{
-              createdAt?: number;
-              description: string;
-              externalId: string;
-              indicatorExternalId?: string;
-              isRed?: boolean;
-              keyResultExternalId: string;
-              priority: "lowest" | "low" | "medium" | "high" | "highest";
-              teamExternalId: string;
-              triggerValue?: number;
-              triggeredIfLower?: boolean;
-              useForecastAsTrigger?: boolean;
-            }>;
-            teams?: Array<{
-              companyExternalId: string;
-              createdAt?: number;
-              externalId: string;
-              name: string;
-            }>;
-            users?: Array<{
-              createdAt?: number;
-              email: string;
-              externalId: string;
-              name?: string;
-              surname?: string;
-            }>;
-          };
-        },
-        { errors: Array<string>; queueIds: Array<string>; success: boolean },
-        Name
-      >;
-      insertIndicator: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          indicator: {
-            automationDescription?: string;
-            automationUrl?: string;
-            companyExternalId: string;
-            createdAt?: number;
-            description: string;
-            externalId: string;
-            forecastDate?: number;
-            isReverse?: boolean;
-            periodicity:
-              | "weekly"
-              | "monthly"
-              | "quarterly"
-              | "semesterly"
-              | "yearly";
-            symbol: string;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertIndicatorValue: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          indicatorValue: {
-            createdAt?: number;
-            date: number;
-            externalId: string;
-            indicatorExternalId: string;
-            value: number;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertInitiative: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          initiative: {
-            assigneeExternalId: string;
-            createdAt?: number;
-            createdByExternalId: string;
-            description: string;
-            externalId: string;
-            externalUrl?: string;
-            finishedAt?: number;
-            isNew?: boolean;
-            priority: "lowest" | "low" | "medium" | "high" | "highest";
-            riskExternalId: string;
-            status: "ON_TIME" | "OVERDUE" | "FINISHED";
-            teamExternalId: string;
-            updatedAt?: number;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertKeyResult: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          keyResult: {
-            createdAt?: number;
-            externalId: string;
-            forecastValue?: number;
-            impact?: number;
-            indicatorExternalId: string;
-            objectiveExternalId: string;
-            targetValue?: number;
-            teamExternalId: string;
-            updatedAt?: number;
-            weight: number;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertMilestone: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          milestone: {
-            achievedAt?: number;
-            createdAt?: number;
-            description: string;
-            externalId: string;
-            forecastDate?: number;
-            indicatorExternalId: string;
-            status:
-              | "ON_TIME"
-              | "OVERDUE"
-              | "ACHIEVED_ON_TIME"
-              | "ACHIEVED_LATE";
-            updatedAt?: number;
-            value: number;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertObjective: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          objective: {
-            createdAt?: number;
-            description: string;
-            externalId: string;
-            teamExternalId: string;
-            title: string;
-            updatedAt?: number;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
-      insertRisk: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          risk: {
-            createdAt?: number;
-            description: string;
-            externalId: string;
-            indicatorExternalId?: string;
-            isRed?: boolean;
-            keyResultExternalId: string;
-            priority: "lowest" | "low" | "medium" | "high" | "highest";
-            teamExternalId: string;
-            triggerValue?: number;
-            triggeredIfLower?: boolean;
-            useForecastAsTrigger?: boolean;
-          };
-        },
-        {
-          error?: string;
-          externalId: string;
-          queueId?: string;
-          success: boolean;
-        },
-        Name
-      >;
       processSyncQueue: FunctionReference<
         "action",
         "internal",
         {
-          apiKeyPrefix: string;
+          apiKeyPrefix?: string;
           batchSize?: number;
-          endpointUrl: string;
-          signingSecret: string;
+          endpointUrl?: string;
+          signingSecret?: string;
         },
         { failed: number; processed: number; succeeded: number },
-        Name
-      >;
-      sendBatchToLinkHub: FunctionReference<
-        "action",
-        "internal",
-        {
-          apiKeyPrefix: string;
-          endpointUrl: string;
-          payload: string;
-          signingSecret: string;
-        },
-        {
-          errors: Array<string>;
-          results: Array<{
-            action?: "create" | "update";
-            entityType: string;
-            error?: string;
-            externalId: string;
-            linkHubId?: string;
-          }>;
-          success: boolean;
-        },
-        Name
-      >;
-      sendToLinkHub: FunctionReference<
-        "action",
-        "internal",
-        {
-          apiKeyPrefix: string;
-          endpointUrl: string;
-          entityType: string;
-          payload: string;
-          signingSecret: string;
-        },
-        {
-          action?: "create" | "update";
-          error?: string;
-          externalId: string;
-          linkHubId?: string;
-          success: boolean;
-        },
         Name
       >;
       updateIndicator: FunctionReference<
@@ -2597,10 +1810,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "action",
           "internal",
           {
-            apiKeyPrefix: string;
+            apiKeyPrefix?: string;
             batchSize?: number;
-            endpointUrl: string;
-            signingSecret: string;
+            endpointUrl?: string;
+            signingSecret?: string;
           },
           { failed: number; processed: number; succeeded: number },
           Name
@@ -2652,10 +1865,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "action",
           "internal",
           {
-            apiKeyPrefix: string;
+            apiKeyPrefix?: string;
             batchSize?: number;
-            endpointUrl: string;
-            signingSecret: string;
+            endpointUrl?: string;
+            signingSecret?: string;
           },
           { failed: number; processed: number; succeeded: number },
           Name

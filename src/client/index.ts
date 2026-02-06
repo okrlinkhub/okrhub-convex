@@ -146,10 +146,12 @@ interface ExposeApiOptions {
 }
 
 /**
- * Get configuration from options or environment
+ * Get configuration from options or environment.
  * Priority: options.getConfig() > options.config > process.env
+ *
+ * Returns null if no config is available (the component will read from its DB).
  */
-function resolveConfig(options?: ExposeApiOptions): OKRHubConfig {
+function resolveConfig(options?: ExposeApiOptions): OKRHubConfig | null {
   // Priority 1: Use getConfig function if provided (called at runtime)
   if (options?.getConfig) {
     return options.getConfig();
@@ -166,32 +168,65 @@ function resolveConfig(options?: ExposeApiOptions): OKRHubConfig {
   const signingSecret = process.env.LINKHUB_SIGNING_SECRET;
 
   if (!endpointUrl || !apiKeyPrefix || !signingSecret) {
-    throw new Error(
-      "OKRHub configuration missing. " +
-        "Set LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, and LINKHUB_SIGNING_SECRET environment variables, " +
-        "or pass config/getConfig in exposeApi options."
-    );
+    // Config not available - component will read from its DB
+    return null;
   }
 
   return { endpointUrl, apiKeyPrefix, signingSecret };
 }
 
 /**
+ * Require configuration from options or environment.
+ * Throws if not available. Used for backward-compatible code paths.
+ */
+function requireConfig(options?: ExposeApiOptions): OKRHubConfig {
+  const config = resolveConfig(options);
+  if (!config) {
+    throw new Error(
+      "OKRHub configuration missing. " +
+        "Set LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, and LINKHUB_SIGNING_SECRET environment variables, " +
+        "or pass config/getConfig in exposeApi options, " +
+        "or call configure() to store config in the component DB."
+    );
+  }
+  return config;
+}
+
+/**
  * Expose the OKRHub component API for use in consumer applications.
  *
+ * Minimal setup (recommended):
  * @example
  * ```typescript
  * // convex/okrhub.ts
  * import { components } from "./_generated/api";
  * import { exposeApi } from "@okrlinkhub/okrhub";
  *
- * export const { insertObjective, insertKeyResult, processSyncQueue } =
- *   exposeApi(components.okrhub, {
- *     auth: async (ctx, operation) => {
- *       const identity = await ctx.auth.getUserIdentity();
- *       if (!identity) throw new Error("Unauthorized");
- *     },
- *   });
+ * export const {
+ *   configure,
+ *   startSync,
+ *   insertRisk,
+ *   insertInitiative,
+ *   processSyncQueue,
+ *   getPendingSyncItems,
+ * } = exposeApi(components.okrhub);
+ * ```
+ *
+ * Then call `configure()` once from the Convex Dashboard:
+ * ```
+ * npx convex run okrhub:configure '{"endpointUrl":"https://...","apiKeyPrefix":"okr_...","signingSecret":"whsec_..."}'
+ * ```
+ *
+ * Or with env vars (legacy):
+ * @example
+ * ```typescript
+ * export const { ... } = exposeApi(components.okrhub, {
+ *   getConfig: () => ({
+ *     endpointUrl: process.env.LINKHUB_API_URL!,
+ *     apiKeyPrefix: process.env.LINKHUB_API_KEY_PREFIX!,
+ *     signingSecret: process.env.LINKHUB_SIGNING_SECRET!,
+ *   }),
+ * });
  * ```
  */
 export function exposeApi(
@@ -200,217 +235,83 @@ export function exposeApi(
 ) {
   return {
     // =========================================================================
-    // OBJECTIVE MUTATIONS
+    // CONFIGURATION
     // =========================================================================
-    insertObjective: mutationGeneric({
+
+    /**
+     * Store LinkHub connection config in the component's database.
+     * Call once during setup. Config can also come from env vars or getConfig option.
+     *
+     * If env vars (LINKHUB_API_URL, LINKHUB_API_KEY_PREFIX, LINKHUB_SIGNING_SECRET)
+     * are set, they will be used as defaults if explicit args are not provided.
+     */
+    configure: mutationGeneric({
       args: {
-        objective: v.object({
-          externalId: v.string(),
-          title: v.string(),
-          description: v.string(),
-          teamExternalId: v.string(),
-          createdAt: v.optional(v.number()),
-          updatedAt: v.optional(v.number()),
-        }),
+        endpointUrl: v.optional(v.string()),
+        apiKeyPrefix: v.optional(v.string()),
+        signingSecret: v.optional(v.string()),
+        autoSyncEnabled: v.optional(v.boolean()),
+        syncIntervalMs: v.optional(v.number()),
+        sourceApp: v.optional(v.string()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "objective" });
+          await options.auth(ctx, { type: "sync", entityType: "config" });
         }
-        return await ctx.runMutation(component.okrhub.insertObjective, args);
+
+        // Resolve: explicit args > options config > env vars
+        const envConfig = resolveConfig(options);
+        const endpointUrl = args.endpointUrl || envConfig?.endpointUrl;
+        const apiKeyPrefix = args.apiKeyPrefix || envConfig?.apiKeyPrefix;
+        const signingSecret = args.signingSecret || envConfig?.signingSecret;
+
+        if (!endpointUrl || !apiKeyPrefix || !signingSecret) {
+          throw new Error(
+            "OKRHub configure() requires endpointUrl, apiKeyPrefix, and signingSecret. " +
+              "Pass them as arguments, set environment variables, or use getConfig option."
+          );
+        }
+
+        return await ctx.runMutation(component.config.configure, {
+          endpointUrl,
+          apiKeyPrefix,
+          signingSecret,
+          autoSyncEnabled: args.autoSyncEnabled ?? true,
+          syncIntervalMs: args.syncIntervalMs ?? 60000,
+          sourceApp: args.sourceApp,
+        });
       },
     }),
 
-    // =========================================================================
-    // KEY RESULT MUTATIONS
-    // =========================================================================
-    insertKeyResult: mutationGeneric({
+    /**
+     * Start the auto-sync loop. Triggers one processSyncQueue run,
+     * which will self-schedule subsequent runs if autoSyncEnabled is true.
+     *
+     * Call once after configure() to kick off the sync loop.
+     */
+    startSync: actionGeneric({
       args: {
-        keyResult: v.object({
-          externalId: v.string(),
-          objectiveExternalId: v.string(), // Required
-          indicatorExternalId: v.string(),
-          teamExternalId: v.string(),
-          weight: v.number(),
-          impact: v.optional(v.number()),
-          forecastValue: v.optional(v.number()),
-          targetValue: v.optional(v.number()),
-          createdAt: v.optional(v.number()),
-          updatedAt: v.optional(v.number()),
-        }),
+        batchSize: v.optional(v.number()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "keyResult" });
+          await options.auth(ctx, { type: "sync", entityType: "queue" });
         }
-        return await ctx.runMutation(component.okrhub.insertKeyResult, args);
-      },
-    }),
-
-    // =========================================================================
-    // RISK MUTATIONS
-    // =========================================================================
-    insertRisk: mutationGeneric({
-      args: {
-        risk: v.object({
-          externalId: v.string(),
-          description: v.string(),
-          teamExternalId: v.string(),
-          priority: v.union(
-            v.literal("lowest"),
-            v.literal("low"),
-            v.literal("medium"),
-            v.literal("high"),
-            v.literal("highest")
-          ),
-          keyResultExternalId: v.string(), // Required
-          indicatorExternalId: v.optional(v.string()),
-          triggerValue: v.optional(v.number()),
-          triggeredIfLower: v.optional(v.boolean()),
-          useForecastAsTrigger: v.optional(v.boolean()),
-          isRed: v.optional(v.boolean()),
-          createdAt: v.optional(v.number()),
-        }),
-      },
-      handler: async (ctx, args) => {
-        if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "risk" });
-        }
-        return await ctx.runMutation(component.okrhub.insertRisk, args);
-      },
-    }),
-
-    // =========================================================================
-    // INITIATIVE MUTATIONS
-    // =========================================================================
-    insertInitiative: mutationGeneric({
-      args: {
-        initiative: v.object({
-          externalId: v.string(),
-          description: v.string(),
-          teamExternalId: v.string(),
-          assigneeExternalId: v.string(),
-          createdByExternalId: v.string(),
-          priority: v.union(
-            v.literal("lowest"),
-            v.literal("low"),
-            v.literal("medium"),
-            v.literal("high"),
-            v.literal("highest")
-          ),
-          riskExternalId: v.string(), // Required
-          status: v.union( // Required
-            v.literal("ON_TIME"),
-            v.literal("OVERDUE"),
-            v.literal("FINISHED")
-          ),
-          isNew: v.optional(v.boolean()),
-          finishedAt: v.optional(v.number()),
-          externalUrl: v.optional(v.string()),
-          createdAt: v.optional(v.number()),
-          updatedAt: v.optional(v.number()),
-        }),
-      },
-      handler: async (ctx, args) => {
-        if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "initiative" });
-        }
-        return await ctx.runMutation(component.okrhub.insertInitiative, args);
-      },
-    }),
-
-    // =========================================================================
-    // INDICATOR MUTATIONS
-    // =========================================================================
-    insertIndicator: mutationGeneric({
-      args: {
-        indicator: v.object({
-          externalId: v.string(),
-          companyExternalId: v.string(),
-          description: v.string(),
-          symbol: v.string(),
-          periodicity: v.union(
-            v.literal("weekly"),
-            v.literal("monthly"),
-            v.literal("quarterly"),
-            v.literal("semesterly"),
-            v.literal("yearly")
-          ),
-          isReverse: v.optional(v.boolean()),
-          automationUrl: v.optional(v.string()),
-          automationDescription: v.optional(v.string()),
-          forecastDate: v.optional(v.number()),
-          createdAt: v.optional(v.number()),
-        }),
-      },
-      handler: async (ctx, args) => {
-        if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "indicator" });
-        }
-        return await ctx.runMutation(component.okrhub.insertIndicator, args);
-      },
-    }),
-
-    // =========================================================================
-    // INDICATOR VALUE MUTATIONS
-    // =========================================================================
-    insertIndicatorValue: mutationGeneric({
-      args: {
-        indicatorValue: v.object({
-          externalId: v.string(),
-          indicatorExternalId: v.string(),
-          value: v.number(),
-          date: v.number(),
-          createdAt: v.optional(v.number()),
-        }),
-      },
-      handler: async (ctx, args) => {
-        if (options?.auth) {
-          await options.auth(ctx, {
-            type: "insert",
-            entityType: "indicatorValue",
-          });
-        }
-        return await ctx.runMutation(
-          component.okrhub.insertIndicatorValue,
-          args
-        );
-      },
-    }),
-
-    // =========================================================================
-    // MILESTONE MUTATIONS
-    // =========================================================================
-    insertMilestone: mutationGeneric({
-      args: {
-        milestone: v.object({
-          externalId: v.string(),
-          indicatorExternalId: v.string(),
-          description: v.string(),
-          value: v.number(),
-          status: v.union( // Required
-            v.literal("ON_TIME"),
-            v.literal("OVERDUE"),
-            v.literal("ACHIEVED_ON_TIME"),
-            v.literal("ACHIEVED_LATE")
-          ),
-          achievedAt: v.optional(v.number()),
-          forecastDate: v.optional(v.number()),
-          createdAt: v.optional(v.number()),
-          updatedAt: v.optional(v.number()),
-        }),
-      },
-      handler: async (ctx, args) => {
-        if (options?.auth) {
-          await options.auth(ctx, { type: "insert", entityType: "milestone" });
-        }
-        return await ctx.runMutation(component.okrhub.insertMilestone, args);
+        return await ctx.runAction(component.sync.processor.processSyncQueue, {
+          batchSize: args.batchSize,
+        });
       },
     }),
 
     // =========================================================================
     // SYNC PROCESSOR
     // =========================================================================
+
+    /**
+     * Process the sync queue manually.
+     * Reads config from stored DB config, env vars, or getConfig option.
+     * If autoSyncEnabled, also self-schedules the next run.
+     */
     processSyncQueue: actionGeneric({
       args: {
         batchSize: v.optional(v.number()),
@@ -420,12 +321,13 @@ export function exposeApi(
           await options.auth(ctx, { type: "sync", entityType: "queue" });
         }
 
+        // Try to resolve config from options/env (backward compatible)
         const config = resolveConfig(options);
 
         return await ctx.runAction(component.okrhub.processSyncQueue, {
-          endpointUrl: config.endpointUrl,
-          apiKeyPrefix: config.apiKeyPrefix,
-          signingSecret: config.signingSecret,
+          endpointUrl: config?.endpointUrl,
+          apiKeyPrefix: config?.apiKeyPrefix,
+          signingSecret: config?.signingSecret,
           batchSize: args.batchSize,
         });
       },
@@ -898,7 +800,7 @@ export function exposeApi(
         email: v.string(),
       },
       handler: async (ctx, args) => {
-        const config = resolveConfig(options);
+        const config = requireConfig(options);
 
         // Create signature payload (query string without leading ?)
         const queryString = `email=${encodeURIComponent(args.email)}`;

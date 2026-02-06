@@ -10,7 +10,6 @@ import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
-  initiativePayloadValidator,
   PrioritySchema,
   InitiativeStatusSchema,
   SyncStatusSchema,
@@ -63,6 +62,23 @@ export const createInitiative = mutation({
       assertValidExternalId(assigneeExternalId, "assigneeExternalId");
       assertValidExternalId(createdByExternalId, "createdByExternalId");
       assertValidExternalId(riskExternalId, "riskExternalId");
+
+      // Validate parent hierarchy: risk must exist in local tables
+      const parentRisk = await ctx.db
+        .query("risks")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", riskExternalId)
+        )
+        .first();
+
+      if (!parentRisk) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"initiatives">,
+          error: `Parent risk not found in component tables: ${riskExternalId}. Create it first via createRisk().`,
+        };
+      }
 
       const externalId = generateExternalId(sourceApp, "initiative");
       const slug = generateSlug(sourceApp, description.substring(0, 30));
@@ -283,60 +299,3 @@ export const updateInitiative = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert an initiative into LinkHub
- */
-export const insertInitiative = mutation({
-  args: {
-    initiative: initiativePayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { initiative } = args;
-
-    // Validate external IDs
-    assertValidExternalId(initiative.externalId, "initiative.externalId");
-    assertValidExternalId(
-      initiative.teamExternalId,
-      "initiative.teamExternalId"
-    );
-    assertValidExternalId(
-      initiative.assigneeExternalId,
-      "initiative.assigneeExternalId"
-    );
-    assertValidExternalId(
-      initiative.createdByExternalId,
-      "initiative.createdByExternalId"
-    );
-    assertValidExternalId(
-      initiative.riskExternalId,
-      "initiative.riskExternalId"
-    );
-
-    // Add to sync queue
-    const payload = JSON.stringify(initiative);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "initiative",
-      externalId: initiative.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: initiative.externalId,
-      queueId,
-    };
-  },
-});

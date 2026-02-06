@@ -8,7 +8,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
 import type { Id } from "../_generated/dataModel.js";
 import { assertValidExternalId } from "../lib/validation.js";
-import { indicatorValuePayloadValidator, SyncStatusSchema } from "../schema.js";
+import { SyncStatusSchema } from "../schema.js";
 
 // ============================================================================
 // LOCAL CRUD MUTATIONS
@@ -37,6 +37,23 @@ export const createIndicatorValue = mutation({
 
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
+
+      // Validate parent hierarchy: indicator must exist in local tables
+      const parentIndicator = await ctx.db
+        .query("indicators")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", indicatorExternalId)
+        )
+        .first();
+
+      if (!parentIndicator) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"indicatorValues">,
+          error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
+        };
+      }
 
       const uuid = crypto.randomUUID();
       const externalId = `${sourceApp}:indicatorValue:${uuid}`;
@@ -204,51 +221,3 @@ export const updateIndicatorValue = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert an indicator value into LinkHub
- */
-export const insertIndicatorValue = mutation({
-  args: {
-    indicatorValue: indicatorValuePayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { indicatorValue } = args;
-
-    // Validate external IDs
-    assertValidExternalId(
-      indicatorValue.externalId,
-      "indicatorValue.externalId"
-    );
-    assertValidExternalId(
-      indicatorValue.indicatorExternalId,
-      "indicatorValue.indicatorExternalId"
-    );
-
-    // Add to sync queue
-    const payload = JSON.stringify(indicatorValue);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "indicatorValue",
-      externalId: indicatorValue.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: indicatorValue.externalId,
-      queueId,
-    };
-  },
-});

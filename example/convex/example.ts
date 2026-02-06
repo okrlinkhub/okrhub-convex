@@ -13,15 +13,7 @@ import { v } from "convex/values";
 
 // Re-export the component's API without authentication for testing
 export const {
-  // Insert mutations (low-level API)
-  insertObjective,
-  insertKeyResult,
-  insertRisk,
-  insertInitiative,
-  insertIndicator,
-  insertIndicatorValue,
-  insertMilestone,
-  // Create mutations (high-level API with auto external ID generation)
+  // Create mutations (Strategy A - component tables with hierarchical validation)
   createObjective,
   createKeyResult,
   createRisk,

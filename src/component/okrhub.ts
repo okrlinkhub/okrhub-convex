@@ -3,6 +3,7 @@
  *
  * This file serves as the main barrel export for backward compatibility.
  * All functionality has been refactored into modular files under:
+ * - config.ts - Persistent configuration management
  * - entities/ - Entity-specific CRUD operations and queries
  * - sync/ - Sync queue management and HTTP actions
  * - lib/ - Shared utilities (HMAC, validation, types)
@@ -26,7 +27,6 @@ export {
   updateObjective,
   getObjectivesByTeam,
   getAllObjectives,
-  insertObjective,
 } from "./entities/objectives.js";
 
 // Key Results
@@ -35,7 +35,6 @@ export {
   updateKeyResult,
   getKeyResultsByObjective,
   getAllKeyResults,
-  insertKeyResult,
 } from "./entities/keyResults.js";
 
 // Risks
@@ -44,7 +43,6 @@ export {
   updateRisk,
   getRisksByKeyResult,
   getAllRisks,
-  insertRisk,
 } from "./entities/risks.js";
 
 // Initiatives
@@ -52,7 +50,6 @@ export {
   createInitiative,
   updateInitiative,
   getAllInitiatives,
-  insertInitiative,
 } from "./entities/initiatives.js";
 
 // Indicators
@@ -60,7 +57,6 @@ export {
   createIndicator,
   updateIndicator,
   getAllIndicators,
-  insertIndicator,
 } from "./entities/indicators.js";
 
 // Indicator Values
@@ -68,7 +64,6 @@ export {
   createIndicatorValue,
   updateIndicatorValue,
   getAllIndicatorValues,
-  insertIndicatorValue,
 } from "./entities/indicatorValues.js";
 
 // Indicator Forecasts
@@ -83,11 +78,13 @@ export {
   createMilestone,
   updateMilestone,
   getAllMilestones,
-  insertMilestone,
 } from "./entities/milestones.js";
 
-// Batch
-export { insertBatch } from "./entities/batch.js";
+// ============================================================================
+// CONFIG EXPORTS
+// ============================================================================
+
+export { configure, getConfig, clearConfig } from "./config.js";
 
 // ============================================================================
 // SYNC EXPORTS
@@ -98,8 +95,6 @@ export {
   updateSyncQueueItem,
   getPendingSyncItems,
 } from "./sync/queue.js";
-
-export { sendToLinkHub, sendBatchToLinkHub } from "./sync/http.js";
 
 export { processSyncQueue } from "./sync/processor.js";
 

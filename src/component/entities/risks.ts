@@ -10,7 +10,6 @@ import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
-  riskPayloadValidator,
   PrioritySchema,
   SyncStatusSchema,
 } from "../schema.js";
@@ -63,6 +62,23 @@ export const createRisk = mutation({
       assertValidExternalId(keyResultExternalId, "keyResultExternalId");
       if (indicatorExternalId) {
         assertValidExternalId(indicatorExternalId, "indicatorExternalId");
+      }
+
+      // Validate parent hierarchy: keyResult must exist in local tables
+      const parentKeyResult = await ctx.db
+        .query("keyResults")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", keyResultExternalId)
+        )
+        .first();
+
+      if (!parentKeyResult) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"risks">,
+          error: `Parent keyResult not found in component tables: ${keyResultExternalId}. Create it first via createKeyResult().`,
+        };
       }
 
       const externalId = generateExternalId(sourceApp, "risk");
@@ -329,55 +345,3 @@ export const updateRisk = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert a risk into LinkHub
- */
-export const insertRisk = mutation({
-  args: {
-    risk: riskPayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { risk } = args;
-
-    // Validate external IDs
-    assertValidExternalId(risk.externalId, "risk.externalId");
-    assertValidExternalId(risk.teamExternalId, "risk.teamExternalId");
-    assertValidExternalId(
-      risk.keyResultExternalId,
-      "risk.keyResultExternalId"
-    );
-    if (risk.indicatorExternalId) {
-      assertValidExternalId(
-        risk.indicatorExternalId,
-        "risk.indicatorExternalId"
-      );
-    }
-
-    // Add to sync queue
-    const payload = JSON.stringify(risk);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "risk",
-      externalId: risk.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: risk.externalId,
-      queueId,
-    };
-  },
-});

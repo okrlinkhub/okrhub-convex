@@ -10,7 +10,6 @@ import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
-  indicatorPayloadValidator,
   PeriodicitySchema,
   SyncStatusSchema,
 } from "../schema.js";
@@ -243,48 +242,3 @@ export const updateIndicator = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert an indicator into LinkHub
- */
-export const insertIndicator = mutation({
-  args: {
-    indicator: indicatorPayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { indicator } = args;
-
-    // Validate external IDs
-    assertValidExternalId(indicator.externalId, "indicator.externalId");
-    assertValidExternalId(
-      indicator.companyExternalId,
-      "indicator.companyExternalId"
-    );
-
-    // Add to sync queue
-    const payload = JSON.stringify(indicator);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "indicator",
-      externalId: indicator.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: indicator.externalId,
-      queueId,
-    };
-  },
-});

@@ -38,6 +38,23 @@ export const createIndicatorForecast = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
+      // Validate parent hierarchy: indicator must exist in local tables
+      const parentIndicator = await ctx.db
+        .query("indicators")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", indicatorExternalId)
+        )
+        .first();
+
+      if (!parentIndicator) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"indicatorForecasts">,
+          error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
+        };
+      }
+
       const uuid = crypto.randomUUID();
       const externalId = `${sourceApp}:indicatorForecast:${uuid}`;
       const now = Date.now();

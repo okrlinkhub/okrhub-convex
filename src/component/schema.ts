@@ -365,6 +365,21 @@ export const SyncStatusSchema = v.union(
  */
 export default defineSchema({
   // =========================================================================
+  // CONFIGURATION
+  // =========================================================================
+
+  // Persistent config for LinkHub connection (single row, upserted)
+  config: defineTable({
+    endpointUrl: v.string(),
+    apiKeyPrefix: v.string(),
+    signingSecret: v.string(),
+    autoSyncEnabled: v.boolean(),
+    syncIntervalMs: v.number(), // default 60000 (1 minute)
+    sourceApp: v.optional(v.string()), // e.g. "amc", "myapp"
+    updatedAt: v.number(),
+  }),
+
+  // =========================================================================
   // SYNC INFRASTRUCTURE
   // =========================================================================
 

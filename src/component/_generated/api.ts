@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as config from "../config.js";
 import type * as entities_batch from "../entities/batch.js";
 import type * as entities_index from "../entities/index.js";
 import type * as entities_indicatorForecasts from "../entities/indicatorForecasts.js";
@@ -37,6 +38,7 @@ import type {
 import { anyApi, componentsGeneric } from "convex/server";
 
 const fullApi: ApiFromModules<{
+  config: typeof config;
   "entities/batch": typeof entities_batch;
   "entities/index": typeof entities_index;
   "entities/indicatorForecasts": typeof entities_indicatorForecasts;

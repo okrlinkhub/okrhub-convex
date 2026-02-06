@@ -9,7 +9,7 @@ import { mutation, query } from "../_generated/server.js";
 import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
-import { keyResultPayloadValidator, SyncStatusSchema } from "../schema.js";
+import { SyncStatusSchema } from "../schema.js";
 
 // ============================================================================
 // LOCAL CRUD MUTATIONS
@@ -52,6 +52,40 @@ export const createKeyResult = mutation({
       assertValidExternalId(teamExternalId, "teamExternalId");
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
       assertValidExternalId(objectiveExternalId, "objectiveExternalId");
+
+      // Validate parent hierarchy: objective must exist in local tables
+      const parentObjective = await ctx.db
+        .query("objectives")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", objectiveExternalId)
+        )
+        .first();
+
+      if (!parentObjective) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"keyResults">,
+          error: `Parent objective not found in component tables: ${objectiveExternalId}. Create it first via createObjective().`,
+        };
+      }
+
+      // Validate parent hierarchy: indicator must exist in local tables
+      const parentIndicator = await ctx.db
+        .query("indicators")
+        .withIndex("by_external_id", (q) =>
+          q.eq("externalId", indicatorExternalId)
+        )
+        .first();
+
+      if (!parentIndicator) {
+        return {
+          success: false,
+          externalId: "",
+          localId: "" as Id<"keyResults">,
+          error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
+        };
+      }
 
       const externalId = generateExternalId(sourceApp, "keyResult");
       const slug = generateSlug(sourceApp, `kr-${sourceApp}`);
@@ -282,53 +316,3 @@ export const updateKeyResult = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert a key result into LinkHub
- */
-export const insertKeyResult = mutation({
-  args: {
-    keyResult: keyResultPayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { keyResult } = args;
-
-    // Validate external IDs
-    assertValidExternalId(keyResult.externalId, "keyResult.externalId");
-    assertValidExternalId(keyResult.teamExternalId, "keyResult.teamExternalId");
-    assertValidExternalId(
-      keyResult.indicatorExternalId,
-      "keyResult.indicatorExternalId"
-    );
-    assertValidExternalId(
-      keyResult.objectiveExternalId,
-      "keyResult.objectiveExternalId"
-    );
-
-    // Add to sync queue
-    const payload = JSON.stringify(keyResult);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "keyResult",
-      externalId: keyResult.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: keyResult.externalId,
-      queueId,
-    };
-  },
-});

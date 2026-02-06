@@ -9,7 +9,7 @@ import { mutation, query } from "../_generated/server.js";
 import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
-import { objectivePayloadValidator, SyncStatusSchema } from "../schema.js";
+import { SyncStatusSchema } from "../schema.js";
 
 // ============================================================================
 // LOCAL CRUD MUTATIONS
@@ -250,45 +250,3 @@ export const updateObjective = mutation({
   },
 });
 
-// ============================================================================
-// PUBLIC MUTATIONS - Entry points for consumers
-// ============================================================================
-
-/**
- * Insert an objective into LinkHub
- */
-export const insertObjective = mutation({
-  args: {
-    objective: objectivePayloadValidator,
-  },
-  returns: v.object({
-    success: v.boolean(),
-    externalId: v.string(),
-    queueId: v.optional(v.id("syncQueue")),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const { objective } = args;
-
-    // Validate external IDs
-    assertValidExternalId(objective.externalId, "objective.externalId");
-    assertValidExternalId(objective.teamExternalId, "objective.teamExternalId");
-
-    // Add to sync queue
-    const payload = JSON.stringify(objective);
-    const queueId = await ctx.db.insert("syncQueue", {
-      entityType: "objective",
-      externalId: objective.externalId,
-      payload,
-      status: "pending",
-      attempts: 0,
-      createdAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      externalId: objective.externalId,
-      queueId,
-    };
-  },
-});
