@@ -356,9 +356,11 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         title: v.string(),
         description: v.string(),
         teamExternalId: v.string(),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -376,11 +378,13 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         objectiveExternalId: v.string(), // Required
         indicatorExternalId: v.string(),
         teamExternalId: v.string(),
         forecastValue: v.optional(v.number()),
         targetValue: v.optional(v.number()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -397,6 +401,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
         keyResultExternalId: v.string(), // Required
@@ -412,6 +417,7 @@ export function exposeApi(
         triggeredIfLower: v.optional(v.boolean()),
         useForecastAsTrigger: v.optional(v.boolean()),
         isRed: v.optional(v.boolean()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -429,6 +435,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
         riskExternalId: v.string(), // Required
@@ -449,6 +456,7 @@ export function exposeApi(
           v.literal("highest")
         ),
         finishedAt: v.optional(v.number()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -465,6 +473,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         companyExternalId: v.string(),
         description: v.string(),
         symbol: v.string(),
@@ -476,6 +485,7 @@ export function exposeApi(
           v.literal("yearly")
         ),
         isReverse: v.optional(v.boolean()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -492,6 +502,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         value: v.number(),
         date: v.number(),
@@ -511,6 +522,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         value: v.number(),
         date: v.number(),
@@ -530,6 +542,7 @@ export function exposeApi(
       args: {
         sourceApp: v.string(),
         sourceUrl: v.optional(v.string()),
+        externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         description: v.string(),
         value: v.number(),
@@ -564,6 +577,7 @@ export function exposeApi(
         externalId: v.string(),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -582,12 +596,28 @@ export function exposeApi(
         objectiveExternalId: v.optional(v.string()),
         forecastValue: v.optional(v.number()),
         targetValue: v.optional(v.number()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
           await options.auth(ctx, { type: "update", entityType: "keyResult" });
         }
         return await ctx.runMutation(component.okrhub.updateKeyResult, args);
+      },
+    }),
+
+    /**
+     * Soft-deletes a risk by setting deletedAt
+     */
+    deleteRisk: mutationGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "update", entityType: "risk" });
+        }
+        return await ctx.runMutation(component.okrhub.deleteRisk, args);
       },
     }),
 
@@ -613,12 +643,28 @@ export function exposeApi(
         triggeredIfLower: v.optional(v.boolean()),
         useForecastAsTrigger: v.optional(v.boolean()),
         isRed: v.optional(v.boolean()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
           await options.auth(ctx, { type: "update", entityType: "risk" });
         }
         return await ctx.runMutation(component.okrhub.updateRisk, args);
+      },
+    }),
+
+    /**
+     * Soft-deletes an initiative by setting deletedAt
+     */
+    deleteInitiative: mutationGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        if (options?.auth) {
+          await options.auth(ctx, { type: "update", entityType: "initiative" });
+        }
+        return await ctx.runMutation(component.okrhub.deleteInitiative, args);
       },
     }),
 
@@ -648,6 +694,7 @@ export function exposeApi(
           )
         ),
         finishedAt: v.optional(v.number()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -675,6 +722,7 @@ export function exposeApi(
           )
         ),
         isReverse: v.optional(v.boolean()),
+        metadata: v.optional(v.any()),
       },
       handler: async (ctx, args) => {
         if (options?.auth) {
@@ -750,6 +798,18 @@ export function exposeApi(
     // =========================================================================
 
     /**
+     * Gets a single objective by externalId
+     */
+    getObjectiveByExternalId: queryGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getObjectiveByExternalId, args);
+      },
+    }),
+
+    /**
      * Gets all local objectives for a team
      */
     getObjectivesByTeam: queryGeneric({
@@ -758,6 +818,18 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         return await ctx.runQuery(component.okrhub.getObjectivesByTeam, args);
+      },
+    }),
+
+    /**
+     * Gets a single key result by externalId
+     */
+    getKeyResultByExternalId: queryGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getKeyResultByExternalId, args);
       },
     }),
 
@@ -774,6 +846,18 @@ export function exposeApi(
     }),
 
     /**
+     * Gets a single risk by externalId
+     */
+    getRiskByExternalId: queryGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getRiskByExternalId, args);
+      },
+    }),
+
+    /**
      * Gets all local risks for a key result
      */
     getRisksByKeyResult: queryGeneric({
@@ -782,6 +866,66 @@ export function exposeApi(
       },
       handler: async (ctx, args) => {
         return await ctx.runQuery(component.okrhub.getRisksByKeyResult, args);
+      },
+    }),
+
+    /**
+     * Gets all local risks for a team
+     */
+    getRisksByTeam: queryGeneric({
+      args: {
+        teamExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getRisksByTeam, args);
+      },
+    }),
+
+    /**
+     * Gets a single initiative by externalId
+     */
+    getInitiativeByExternalId: queryGeneric({
+      args: {
+        externalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getInitiativeByExternalId, args);
+      },
+    }),
+
+    /**
+     * Gets all local initiatives for a risk
+     */
+    getInitiativesByRisk: queryGeneric({
+      args: {
+        riskExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getInitiativesByRisk, args);
+      },
+    }),
+
+    /**
+     * Gets all local initiatives for a team
+     */
+    getInitiativesByTeam: queryGeneric({
+      args: {
+        teamExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getInitiativesByTeam, args);
+      },
+    }),
+
+    /**
+     * Gets all local initiatives for an assignee
+     */
+    getInitiativesByAssignee: queryGeneric({
+      args: {
+        assigneeExternalId: v.string(),
+      },
+      handler: async (ctx, args) => {
+        return await ctx.runQuery(component.okrhub.getInitiativesByAssignee, args);
       },
     }),
 

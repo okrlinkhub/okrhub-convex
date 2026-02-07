@@ -172,7 +172,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             companyExternalId: string;
             description: string;
+            externalId?: string;
             isReverse?: boolean;
+            metadata?: any;
             periodicity:
               | "weekly"
               | "monthly"
@@ -185,6 +187,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -197,6 +200,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
+            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -204,6 +208,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -216,6 +221,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
+            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -223,6 +229,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -237,7 +244,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             assigneeExternalId: string;
             createdByExternalId: string;
             description: string;
+            externalId?: string;
             finishedAt?: number;
+            metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             riskExternalId: string;
             sourceApp: string;
@@ -247,8 +256,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -258,8 +268,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "mutation",
           "internal",
           {
+            externalId?: string;
             forecastValue?: number;
             indicatorExternalId: string;
+            metadata?: any;
             objectiveExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -268,6 +280,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -281,6 +294,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             achievedAt?: number;
             description: string;
+            externalId?: string;
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
@@ -294,6 +308,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -306,6 +321,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
+            externalId?: string;
+            metadata?: any;
             sourceApp: string;
             sourceUrl?: string;
             teamExternalId: string;
@@ -313,6 +330,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -325,9 +343,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
+            externalId?: string;
             indicatorExternalId?: string;
             isRed?: boolean;
             keyResultExternalId: string;
+            metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
             sourceUrl?: string;
@@ -338,8 +358,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -587,6 +608,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
+            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -594,6 +616,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -637,7 +660,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             companyExternalId: string;
             description: string;
+            externalId?: string;
             isReverse?: boolean;
+            metadata?: any;
             periodicity:
               | "weekly"
               | "monthly"
@@ -650,6 +675,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -689,6 +715,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description?: string;
             externalId: string;
             isReverse?: boolean;
+            metadata?: any;
             periodicity?:
               | "weekly"
               | "monthly"
@@ -712,6 +739,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
+            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -719,6 +747,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -763,7 +792,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             assigneeExternalId: string;
             createdByExternalId: string;
             description: string;
+            externalId?: string;
             finishedAt?: number;
+            metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             riskExternalId: string;
             sourceApp: string;
@@ -773,11 +804,19 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
+          Name
+        >;
+        deleteInitiative: FunctionReference<
+          "mutation",
+          "internal",
+          { externalId: string },
+          { error?: string; externalId: string; success: boolean },
           Name
         >;
         getAllInitiatives: FunctionReference<
@@ -804,6 +843,106 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
+        getInitiativeByExternalId: FunctionReference<
+          "query",
+          "internal",
+          { externalId: string },
+          {
+            _creationTime: number;
+            _id: string;
+            assigneeExternalId: string;
+            createdAt: number;
+            createdByExternalId: string;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            finishedAt?: number;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId: string;
+            slug: string;
+            status: "ON_TIME" | "OVERDUE" | "FINISHED";
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            updatedAt?: number;
+          } | null,
+          Name
+        >;
+        getInitiativesByAssignee: FunctionReference<
+          "query",
+          "internal",
+          { assigneeExternalId: string },
+          Array<{
+            _creationTime: number;
+            _id: string;
+            assigneeExternalId: string;
+            createdAt: number;
+            createdByExternalId: string;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            finishedAt?: number;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId: string;
+            slug: string;
+            status: "ON_TIME" | "OVERDUE" | "FINISHED";
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            updatedAt?: number;
+          }>,
+          Name
+        >;
+        getInitiativesByRisk: FunctionReference<
+          "query",
+          "internal",
+          { riskExternalId: string },
+          Array<{
+            _creationTime: number;
+            _id: string;
+            assigneeExternalId: string;
+            createdAt: number;
+            createdByExternalId: string;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            finishedAt?: number;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId: string;
+            slug: string;
+            status: "ON_TIME" | "OVERDUE" | "FINISHED";
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            updatedAt?: number;
+          }>,
+          Name
+        >;
+        getInitiativesByTeam: FunctionReference<
+          "query",
+          "internal",
+          { teamExternalId: string },
+          Array<{
+            _creationTime: number;
+            _id: string;
+            assigneeExternalId: string;
+            createdAt: number;
+            createdByExternalId: string;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            finishedAt?: number;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            riskExternalId: string;
+            slug: string;
+            status: "ON_TIME" | "OVERDUE" | "FINISHED";
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            updatedAt?: number;
+          }>,
+          Name
+        >;
         updateInitiative: FunctionReference<
           "mutation",
           "internal",
@@ -812,6 +951,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             description?: string;
             externalId: string;
             finishedAt?: number;
+            metadata?: any;
             priority?: "lowest" | "low" | "medium" | "high" | "highest";
             riskExternalId?: string;
             status?: "ON_TIME" | "OVERDUE" | "FINISHED";
@@ -830,8 +970,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "mutation",
           "internal",
           {
+            externalId?: string;
             forecastValue?: number;
             indicatorExternalId: string;
+            metadata?: any;
             objectiveExternalId: string;
             sourceApp: string;
             sourceUrl?: string;
@@ -840,6 +982,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -866,6 +1009,28 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             teamExternalId: string;
             updatedAt?: number;
           }>,
+          Name
+        >;
+        getKeyResultByExternalId: FunctionReference<
+          "query",
+          "internal",
+          { externalId: string },
+          {
+            _creationTime: number;
+            _id: string;
+            createdAt: number;
+            deletedAt?: number;
+            externalId: string;
+            forecastValue?: number;
+            indicatorExternalId: string;
+            metadata?: any;
+            objectiveExternalId: string;
+            slug: string;
+            syncStatus: "pending" | "synced" | "failed";
+            targetValue?: number;
+            teamExternalId: string;
+            updatedAt?: number;
+          } | null,
           Name
         >;
         getKeyResultsByObjective: FunctionReference<
@@ -895,6 +1060,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             externalId: string;
             forecastValue?: number;
+            metadata?: any;
             objectiveExternalId?: string;
             targetValue?: number;
           },
@@ -914,6 +1080,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             achievedAt?: number;
             description: string;
+            externalId?: string;
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
@@ -927,6 +1094,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -990,6 +1158,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
+            externalId?: string;
+            metadata?: any;
             sourceApp: string;
             sourceUrl?: string;
             teamExternalId: string;
@@ -997,6 +1167,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
             localId: string;
             queueId?: string;
@@ -1023,6 +1194,26 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
+        getObjectiveByExternalId: FunctionReference<
+          "query",
+          "internal",
+          { externalId: string },
+          {
+            _creationTime: number;
+            _id: string;
+            createdAt: number;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            metadata?: any;
+            slug: string;
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            title: string;
+            updatedAt?: number;
+          } | null,
+          Name
+        >;
         getObjectivesByTeam: FunctionReference<
           "query",
           "internal",
@@ -1045,7 +1236,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         updateObjective: FunctionReference<
           "mutation",
           "internal",
-          { description?: string; externalId: string; title?: string },
+          {
+            description?: string;
+            externalId: string;
+            metadata?: any;
+            title?: string;
+          },
           {
             error?: string;
             externalId: string;
@@ -1061,9 +1257,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
+            externalId?: string;
             indicatorExternalId?: string;
             isRed?: boolean;
             keyResultExternalId: string;
+            metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
             sourceUrl?: string;
@@ -1074,11 +1272,19 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           },
           {
             error?: string;
+            existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
+          Name
+        >;
+        deleteRisk: FunctionReference<
+          "mutation",
+          "internal",
+          { externalId: string },
+          { error?: string; externalId: string; success: boolean },
           Name
         >;
         getAllRisks: FunctionReference<
@@ -1105,6 +1311,31 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
+        getRiskByExternalId: FunctionReference<
+          "query",
+          "internal",
+          { externalId: string },
+          {
+            _creationTime: number;
+            _id: string;
+            createdAt: number;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            indicatorExternalId?: string;
+            isRed?: boolean;
+            keyResultExternalId: string;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            slug: string;
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            triggerValue?: number;
+            triggeredIfLower?: boolean;
+            useForecastAsTrigger?: boolean;
+          } | null,
+          Name
+        >;
         getRisksByKeyResult: FunctionReference<
           "query",
           "internal",
@@ -1129,6 +1360,31 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           }>,
           Name
         >;
+        getRisksByTeam: FunctionReference<
+          "query",
+          "internal",
+          { teamExternalId: string },
+          Array<{
+            _creationTime: number;
+            _id: string;
+            createdAt: number;
+            deletedAt?: number;
+            description: string;
+            externalId: string;
+            indicatorExternalId?: string;
+            isRed?: boolean;
+            keyResultExternalId: string;
+            metadata?: any;
+            priority: "lowest" | "low" | "medium" | "high" | "highest";
+            slug: string;
+            syncStatus: "pending" | "synced" | "failed";
+            teamExternalId: string;
+            triggerValue?: number;
+            triggeredIfLower?: boolean;
+            useForecastAsTrigger?: boolean;
+          }>,
+          Name
+        >;
         updateRisk: FunctionReference<
           "mutation",
           "internal",
@@ -1138,6 +1394,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             indicatorExternalId?: string;
             isRed?: boolean;
             keyResultExternalId?: string;
+            metadata?: any;
             priority?: "lowest" | "low" | "medium" | "high" | "highest";
             triggerValue?: number;
             triggeredIfLower?: boolean;
@@ -1175,7 +1432,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           companyExternalId: string;
           description: string;
+          externalId?: string;
           isReverse?: boolean;
+          metadata?: any;
           periodicity:
             | "weekly"
             | "monthly"
@@ -1188,6 +1447,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1200,6 +1460,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           date: number;
+          externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
           sourceUrl?: string;
@@ -1207,6 +1468,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1219,6 +1481,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           date: number;
+          externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
           sourceUrl?: string;
@@ -1226,6 +1489,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1240,7 +1504,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           assigneeExternalId: string;
           createdByExternalId: string;
           description: string;
+          externalId?: string;
           finishedAt?: number;
+          metadata?: any;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           riskExternalId: string;
           sourceApp: string;
@@ -1250,8 +1516,9 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1261,8 +1528,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         {
+          externalId?: string;
           forecastValue?: number;
           indicatorExternalId: string;
+          metadata?: any;
           objectiveExternalId: string;
           sourceApp: string;
           sourceUrl?: string;
@@ -1271,6 +1540,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1284,6 +1554,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           achievedAt?: number;
           description: string;
+          externalId?: string;
           forecastDate?: number;
           indicatorExternalId: string;
           sourceApp: string;
@@ -1293,6 +1564,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1305,6 +1577,8 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           description: string;
+          externalId?: string;
+          metadata?: any;
           sourceApp: string;
           sourceUrl?: string;
           teamExternalId: string;
@@ -1312,6 +1586,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
           localId: string;
           queueId?: string;
@@ -1324,9 +1599,11 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           description: string;
+          externalId?: string;
           indicatorExternalId?: string;
           isRed?: boolean;
           keyResultExternalId: string;
+          metadata?: any;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           sourceApp: string;
           sourceUrl?: string;
@@ -1337,11 +1614,26 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         },
         {
           error?: string;
+          existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
+        Name
+      >;
+      deleteInitiative: FunctionReference<
+        "mutation",
+        "internal",
+        { externalId: string },
+        { error?: string; externalId: string; success: boolean },
+        Name
+      >;
+      deleteRisk: FunctionReference<
+        "mutation",
+        "internal",
+        { externalId: string },
+        { error?: string; externalId: string; success: boolean },
         Name
       >;
       getAllIndicatorForecasts: FunctionReference<
@@ -1511,6 +1803,128 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         }>,
         Name
       >;
+      getInitiativeByExternalId: FunctionReference<
+        "query",
+        "internal",
+        { externalId: string },
+        {
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId: string;
+          createdAt: number;
+          createdByExternalId: string;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          finishedAt?: number;
+          metadata?: any;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId: string;
+          slug: string;
+          status: "ON_TIME" | "OVERDUE" | "FINISHED";
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          updatedAt?: number;
+        } | null,
+        Name
+      >;
+      getInitiativesByAssignee: FunctionReference<
+        "query",
+        "internal",
+        { assigneeExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId: string;
+          createdAt: number;
+          createdByExternalId: string;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          finishedAt?: number;
+          metadata?: any;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId: string;
+          slug: string;
+          status: "ON_TIME" | "OVERDUE" | "FINISHED";
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getInitiativesByRisk: FunctionReference<
+        "query",
+        "internal",
+        { riskExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId: string;
+          createdAt: number;
+          createdByExternalId: string;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          finishedAt?: number;
+          metadata?: any;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId: string;
+          slug: string;
+          status: "ON_TIME" | "OVERDUE" | "FINISHED";
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getInitiativesByTeam: FunctionReference<
+        "query",
+        "internal",
+        { teamExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          assigneeExternalId: string;
+          createdAt: number;
+          createdByExternalId: string;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          finishedAt?: number;
+          metadata?: any;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          riskExternalId: string;
+          slug: string;
+          status: "ON_TIME" | "OVERDUE" | "FINISHED";
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          updatedAt?: number;
+        }>,
+        Name
+      >;
+      getKeyResultByExternalId: FunctionReference<
+        "query",
+        "internal",
+        { externalId: string },
+        {
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          externalId: string;
+          forecastValue?: number;
+          indicatorExternalId: string;
+          metadata?: any;
+          objectiveExternalId: string;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          targetValue?: number;
+          teamExternalId: string;
+          updatedAt?: number;
+        } | null,
+        Name
+      >;
       getKeyResultsByObjective: FunctionReference<
         "query",
         "internal",
@@ -1530,6 +1944,26 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           teamExternalId: string;
           updatedAt?: number;
         }>,
+        Name
+      >;
+      getObjectiveByExternalId: FunctionReference<
+        "query",
+        "internal",
+        { externalId: string },
+        {
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          metadata?: any;
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          title: string;
+          updatedAt?: number;
+        } | null,
         Name
       >;
       getObjectivesByTeam: FunctionReference<
@@ -1569,6 +2003,31 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         }>,
         Name
       >;
+      getRiskByExternalId: FunctionReference<
+        "query",
+        "internal",
+        { externalId: string },
+        {
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId: string;
+          metadata?: any;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
+        } | null,
+        Name
+      >;
       getRisksByKeyResult: FunctionReference<
         "query",
         "internal",
@@ -1583,6 +2042,31 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           indicatorExternalId?: string;
           isRed?: boolean;
           keyResultExternalId: string;
+          priority: "lowest" | "low" | "medium" | "high" | "highest";
+          slug: string;
+          syncStatus: "pending" | "synced" | "failed";
+          teamExternalId: string;
+          triggerValue?: number;
+          triggeredIfLower?: boolean;
+          useForecastAsTrigger?: boolean;
+        }>,
+        Name
+      >;
+      getRisksByTeam: FunctionReference<
+        "query",
+        "internal",
+        { teamExternalId: string },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          createdAt: number;
+          deletedAt?: number;
+          description: string;
+          externalId: string;
+          indicatorExternalId?: string;
+          isRed?: boolean;
+          keyResultExternalId: string;
+          metadata?: any;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           slug: string;
           syncStatus: "pending" | "synced" | "failed";
@@ -1612,6 +2096,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           description?: string;
           externalId: string;
           isReverse?: boolean;
+          metadata?: any;
           periodicity?:
             | "weekly"
             | "monthly"
@@ -1660,6 +2145,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           description?: string;
           externalId: string;
           finishedAt?: number;
+          metadata?: any;
           priority?: "lowest" | "low" | "medium" | "high" | "highest";
           riskExternalId?: string;
           status?: "ON_TIME" | "OVERDUE" | "FINISHED";
@@ -1678,6 +2164,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           externalId: string;
           forecastValue?: number;
+          metadata?: any;
           objectiveExternalId?: string;
           targetValue?: number;
         },
@@ -1711,7 +2198,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       updateObjective: FunctionReference<
         "mutation",
         "internal",
-        { description?: string; externalId: string; title?: string },
+        {
+          description?: string;
+          externalId: string;
+          metadata?: any;
+          title?: string;
+        },
         {
           error?: string;
           externalId: string;
@@ -1729,6 +2221,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           indicatorExternalId?: string;
           isRed?: boolean;
           keyResultExternalId?: string;
+          metadata?: any;
           priority?: "lowest" | "low" | "medium" | "high" | "highest";
           triggerValue?: number;
           triggeredIfLower?: boolean;

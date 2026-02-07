@@ -14,7 +14,8 @@ OKRHub is a Convex component that enables external applications to sync their OK
 - **One-way sync**: Data flows from your app to LinkHub
 - **Queue-based processing**: Async processing with retry logic
 - **HMAC authentication**: Secure API communication with cryptographic signatures
-- **External ID mapping**: Use your own IDs, LinkHub handles the mapping
+- **Deterministic external IDs**: Use your Convex `_id` as the externalId identifier for automatic idempotency
+- **Idempotent create operations**: `create*` with an existing externalId returns the existing entity, no duplicates
 - **Company isolation**: Each API key is scoped to a specific company
 
 ## Architecture
@@ -131,25 +132,26 @@ LINKHUB_SIGNING_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ### 4. Use in your app
 
 ```typescript
-import { generateExternalId } from "@okrlinkhub/okrhub";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
-function CreateObjective() {
+function CreateObjective({ teamId }: { teamId: string }) {
   const insertObjective = useMutation(api.okrhub.insertObjective);
 
   const handleCreate = async () => {
-    const externalId = generateExternalId("my-app", "objective");
-    const teamExternalId = generateExternalId("my-app", "team");
+    // Deterministic externalId based on Convex IDs — idempotent
+    const teamExternalId = `my-app:team:${teamId}`;
+    const objectiveExternalId = `my-app:objective:${teamId}:revenue-growth`;
     
     await insertObjective({
       objective: {
-        externalId,
-        title: "Increase Revenue Q1",
+        externalId: objectiveExternalId,
+        title: "Increase Revenue",
         description: "Focus on expanding sales channels",
         teamExternalId,
       },
     });
+    // Calling again with the same externalId is safe (idempotent)
   };
 
   return <button onClick={handleCreate}>Create Objective</button>;
@@ -186,11 +188,55 @@ OKRHub uses HMAC-SHA256 authentication to secure communication with LinkHub.
 - Rotate API keys periodically
 - Use granular permissions when possible
 
-## External ID Format
+## External ID Format & Idempotency
 
-All entities use external IDs in the format: `{sourceApp}:{entityType}:{uuid}`
+All entities use external IDs in the format: `{sourceApp}:{entityType}:{identifier}`
 
-Example: `my-app:objective:550e8400-e29b-41d4-a716-446655440000`
+The `{identifier}` segment can be either:
+
+- **Deterministic (recommended)**: use your Convex document `_id` or a semantic key, so the same input always produces the same externalId. This enables **idempotency** — calling `create*` with an existing `externalId` returns the existing entity instead of creating a duplicate.
+- **Random UUID**: use `generateExternalId()` for one-off entities where deduplication is not needed.
+
+### Deterministic ExternalIds (recommended)
+
+For **Level 1** (users & teams) and **Level 2** (local tables mapped to OKR entities), use the Convex `_id` of your local record as the identifier:
+
+```typescript
+// Level 1 — users & teams: use the Convex _id directly
+const userExternalId = `my-app:user:${userId}`;     // e.g. "my-app:user:jd7abc..."
+const teamExternalId = `my-app:team:${teamId}`;     // e.g. "my-app:team:k4xdef..."
+
+// Level 2 — local records mapped to OKR entities
+const keyResultExternalId = `my-app:keyResult:${targetId}`;
+
+// Level 3 — component-only entities with semantic keys
+const indicatorExternalId = `my-app:indicator:revenue:${teamId}`;
+const objectiveExternalId = `my-app:objective:${teamId}:revenue-growth`;
+```
+
+Because the `externalId` is derived from stable, existing values (Convex IDs, business keys), calling `create*` again with the same arguments is **idempotent** — the component detects the existing `externalId` and returns `{ existing: true, ... }` instead of creating a duplicate:
+
+```typescript
+// First call: creates the entity
+const result1 = await ctx.runMutation(
+  components.okrhub.okrhub.createObjective,
+  { sourceApp: "my-app", externalId: `my-app:objective:${teamId}:revenue-growth`,
+    title: "Increase Revenue", description: "...", teamExternalId }
+);
+// result1 = { success: true, externalId: "...", existing: false }
+
+// Second call with same externalId: returns existing entity (idempotent)
+const result2 = await ctx.runMutation(
+  components.okrhub.okrhub.createObjective,
+  { sourceApp: "my-app", externalId: `my-app:objective:${teamId}:revenue-growth`,
+    title: "Increase Revenue", description: "...", teamExternalId }
+);
+// result2 = { success: true, externalId: "...", existing: true }
+```
+
+### Random ExternalIds (fallback)
+
+For entities that don't have a natural key, use `generateExternalId()`:
 
 ```typescript
 import { 
@@ -199,7 +245,7 @@ import {
   parseExternalId 
 } from "@okrlinkhub/okrhub";
 
-// Generate a new external ID
+// Generate a random external ID (UUID-based)
 const id = generateExternalId("my-app", "objective");
 // "my-app:objective:550e8400-e29b-41d4-a716-446655440000"
 
@@ -210,6 +256,8 @@ const isValid = validateExternalId(id); // true
 const parsed = parseExternalId(id);
 // { sourceApp: "my-app", entityType: "objective", uuid: "..." }
 ```
+
+> **Note:** Random UUIDs do not support idempotency — each call generates a different ID, so `create*` will always create a new entity. Prefer deterministic IDs whenever possible.
 
 ### Supported Entity Types
 
@@ -362,11 +410,11 @@ Save the returned `apiKey`, `keyPrefix`, and `signingSecret`.
 
 ### 2. Create Reference Mappings
 
-For each team/user/company referenced by your external IDs, create a mapping in LinkHub using `ingest:createMappingForSetup`:
+For each team/user/company referenced by your external IDs, create a mapping in LinkHub using `ingest:createMappingForSetup`. Use the Convex `_id` of your local record as the identifier:
 
 ```json
 {
-  "externalId": "my-app:team:00000000-0000-0000-0000-000000000001",
+  "externalId": "my-app:team:k4xdef123abc",
   "entityType": "team",
   "convexId": "existing_team_id_in_linkhub",
   "tableName": "teams",
@@ -374,6 +422,8 @@ For each team/user/company referenced by your external IDs, create a mapping in 
   "companyId": "your_company_id"
 }
 ```
+
+> **Tip:** Using the Convex `_id` (e.g. `k4xdef123abc`) instead of random UUIDs means the externalId is **deterministic** — you can always reconstruct it from the local record and re-sync safely.
 
 ### 3. Configure Environment
 
@@ -387,22 +437,35 @@ LINKHUB_SIGNING_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx
 
 ### 4. Test Sync
 
-Insert an entity and process the queue:
+Insert an entity and process the queue. Use a deterministic externalId for idempotency:
 
 ```typescript
-// Insert
+const teamId = "k4xdef123abc"; // your local Convex team _id
+
+// Insert — idempotent thanks to deterministic externalId
 await insertObjective({
   objective: {
-    externalId: generateExternalId("my-app", "objective"),
-    title: "Test Objective",
+    externalId: `my-app:objective:${teamId}:revenue-growth`,
+    title: "Increase Revenue",
     description: "Testing the sync",
-    teamExternalId: "my-app:team:00000000-0000-0000-0000-000000000001",
+    teamExternalId: `my-app:team:${teamId}`,
   },
 });
 
 // Process
 const result = await processSyncQueue({ batchSize: 10 });
 // { processed: 1, succeeded: 1, failed: 0 }
+
+// Insert again — same externalId, so no duplicate is created
+await insertObjective({
+  objective: {
+    externalId: `my-app:objective:${teamId}:revenue-growth`,
+    title: "Increase Revenue",
+    description: "Testing the sync",
+    teamExternalId: `my-app:team:${teamId}`,
+  },
+});
+// The component returns { existing: true } instead of creating a duplicate
 ```
 
 ## HTTP Routes (Optional)

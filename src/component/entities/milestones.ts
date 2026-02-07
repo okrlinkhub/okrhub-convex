@@ -25,6 +25,7 @@ export const createMilestone = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     indicatorExternalId: v.string(),
     description: v.string(),
     value: v.number(),
@@ -38,6 +39,7 @@ export const createMilestone = mutation({
     localId: v.id("milestones"),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const {
@@ -53,6 +55,22 @@ export const createMilestone = mutation({
 
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
+
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("milestones")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
 
       // Validate parent hierarchy: indicator must exist in local tables
       const parentIndicator = await ctx.db
@@ -71,7 +89,8 @@ export const createMilestone = mutation({
         };
       }
 
-      const externalId = generateExternalId(sourceApp, "milestone");
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? generateExternalId(sourceApp, "milestone");
       const slug = generateSlug(sourceApp, description);
       const now = Date.now();
 

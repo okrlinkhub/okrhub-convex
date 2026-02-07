@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
@@ -27,6 +26,7 @@ export const createInitiative = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
     riskExternalId: v.string(), // Required: Reference to risk
@@ -35,13 +35,15 @@ export const createInitiative = mutation({
     status: v.optional(InitiativeStatusSchema), // Optional in input, default ON_TIME
     priority: PrioritySchema,
     finishedAt: v.optional(v.number()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("initiatives"),
+    localId: v.optional(v.id("initiatives")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const {
@@ -63,6 +65,22 @@ export const createInitiative = mutation({
       assertValidExternalId(createdByExternalId, "createdByExternalId");
       assertValidExternalId(riskExternalId, "riskExternalId");
 
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("initiatives")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
+
       // Validate parent hierarchy: risk must exist in local tables
       const parentRisk = await ctx.db
         .query("risks")
@@ -75,12 +93,14 @@ export const createInitiative = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"initiatives">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent risk not found in component tables: ${riskExternalId}. Create it first via createRisk().`,
         };
       }
 
-      const externalId = generateExternalId(sourceApp, "initiative");
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? generateExternalId(sourceApp, "initiative");
       const slug = generateSlug(sourceApp, description.substring(0, 30));
       const now = Date.now();
 
@@ -95,6 +115,7 @@ export const createInitiative = mutation({
         priority,
         finishedAt,
         slug,
+        metadata: args.metadata,
         syncStatus: "pending",
         createdAt: now,
       });
@@ -137,7 +158,8 @@ export const createInitiative = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"initiatives">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }
@@ -147,6 +169,154 @@ export const createInitiative = mutation({
 // ============================================================================
 // LOCAL QUERY FUNCTIONS
 // ============================================================================
+
+/**
+ * Gets a single initiative by its externalId
+ */
+export const getInitiativeByExternalId = query({
+  args: {
+    externalId: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id("initiatives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      riskExternalId: v.string(),
+      assigneeExternalId: v.string(),
+      createdByExternalId: v.string(),
+      status: InitiativeStatusSchema,
+      priority: PrioritySchema,
+      finishedAt: v.optional(v.number()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("initiatives")
+      .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId))
+      .first();
+  },
+});
+
+/**
+ * Gets all local initiatives for a risk
+ */
+export const getInitiativesByRisk = query({
+  args: {
+    riskExternalId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("initiatives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      riskExternalId: v.string(),
+      assigneeExternalId: v.string(),
+      createdByExternalId: v.string(),
+      status: InitiativeStatusSchema,
+      priority: PrioritySchema,
+      finishedAt: v.optional(v.number()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("initiatives")
+      .withIndex("by_risk", (q) => q.eq("riskExternalId", args.riskExternalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+/**
+ * Gets all local initiatives for a team
+ */
+export const getInitiativesByTeam = query({
+  args: {
+    teamExternalId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("initiatives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      riskExternalId: v.string(),
+      assigneeExternalId: v.string(),
+      createdByExternalId: v.string(),
+      status: InitiativeStatusSchema,
+      priority: PrioritySchema,
+      finishedAt: v.optional(v.number()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("initiatives")
+      .withIndex("by_team", (q) => q.eq("teamExternalId", args.teamExternalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
+
+/**
+ * Gets all local initiatives for an assignee
+ */
+export const getInitiativesByAssignee = query({
+  args: {
+    assigneeExternalId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("initiatives"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      riskExternalId: v.string(),
+      assigneeExternalId: v.string(),
+      createdByExternalId: v.string(),
+      status: InitiativeStatusSchema,
+      priority: PrioritySchema,
+      finishedAt: v.optional(v.number()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("initiatives")
+      .withIndex("by_assignee", (q) => q.eq("assigneeExternalId", args.assigneeExternalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
 
 /**
  * Gets all local initiatives
@@ -186,6 +356,56 @@ export const getAllInitiatives = query({
 // ============================================================================
 
 /**
+ * Soft-deletes an initiative by setting deletedAt
+ */
+export const deleteInitiative = mutation({
+  args: {
+    externalId: v.string(),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId } = args;
+
+    try {
+      const initiative = await ctx.db
+        .query("initiatives")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!initiative) {
+        return {
+          success: false,
+          externalId,
+          error: `Initiative not found: ${externalId}`,
+        };
+      }
+
+      await ctx.db.patch(initiative._id, { deletedAt: Date.now() });
+
+      return {
+        success: true,
+        externalId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+/**
  * Updates an initiative locally and queues for sync
  * Resets syncStatus to "pending"
  */
@@ -198,6 +418,7 @@ export const updateInitiative = mutation({
     status: v.optional(InitiativeStatusSchema),
     priority: v.optional(PrioritySchema),
     finishedAt: v.optional(v.number()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -249,6 +470,7 @@ export const updateInitiative = mutation({
         ...(status !== undefined && { status }),
         ...(priority !== undefined && { priority }),
         ...(finishedAt !== undefined && { finishedAt }),
+        ...(args.metadata !== undefined && { metadata: args.metadata }),
         syncStatus: "pending",
         updatedAt: now,
       });

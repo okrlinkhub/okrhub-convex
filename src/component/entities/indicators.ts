@@ -25,11 +25,13 @@ export const createIndicator = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     companyExternalId: v.string(),
     description: v.string(),
     symbol: v.string(),
     periodicity: PeriodicitySchema,
     isReverse: v.optional(v.boolean()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -37,6 +39,7 @@ export const createIndicator = mutation({
     localId: v.id("indicators"),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const {
@@ -52,7 +55,24 @@ export const createIndicator = mutation({
     try {
       assertValidExternalId(companyExternalId, "companyExternalId");
 
-      const externalId = generateExternalId(sourceApp, "indicator");
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("indicators")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
+
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? generateExternalId(sourceApp, "indicator");
       const slug = generateSlug(sourceApp, description);
       const now = Date.now();
 
@@ -64,6 +84,7 @@ export const createIndicator = mutation({
         periodicity,
         isReverse,
         slug,
+        metadata: args.metadata,
         syncStatus: "pending",
         createdAt: now,
       });
@@ -158,6 +179,7 @@ export const updateIndicator = mutation({
     symbol: v.optional(v.string()),
     periodicity: v.optional(PeriodicitySchema),
     isReverse: v.optional(v.boolean()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -197,6 +219,7 @@ export const updateIndicator = mutation({
         ...(symbol !== undefined && { symbol }),
         ...(periodicity !== undefined && { periodicity }),
         ...(isReverse !== undefined && { isReverse }),
+        ...(args.metadata !== undefined && { metadata: args.metadata }),
         syncStatus: "pending",
       });
 

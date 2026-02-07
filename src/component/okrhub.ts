@@ -25,6 +25,7 @@
 export {
   createObjective,
   updateObjective,
+  getObjectiveByExternalId,
   getObjectivesByTeam,
   getAllObjectives,
 } from "./entities/objectives.js";
@@ -33,6 +34,7 @@ export {
 export {
   createKeyResult,
   updateKeyResult,
+  getKeyResultByExternalId,
   getKeyResultsByObjective,
   getAllKeyResults,
 } from "./entities/keyResults.js";
@@ -41,7 +43,10 @@ export {
 export {
   createRisk,
   updateRisk,
+  deleteRisk,
+  getRiskByExternalId,
   getRisksByKeyResult,
+  getRisksByTeam,
   getAllRisks,
 } from "./entities/risks.js";
 
@@ -49,6 +54,11 @@ export {
 export {
   createInitiative,
   updateInitiative,
+  deleteInitiative,
+  getInitiativeByExternalId,
+  getInitiativesByRisk,
+  getInitiativesByTeam,
+  getInitiativesByAssignee,
   getAllInitiatives,
 } from "./entities/initiatives.js";
 

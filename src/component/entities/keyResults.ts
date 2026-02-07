@@ -23,11 +23,13 @@ export const createKeyResult = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     objectiveExternalId: v.string(), // Required: Reference to objective
     indicatorExternalId: v.string(),
     teamExternalId: v.string(),
     forecastValue: v.optional(v.number()),
     targetValue: v.optional(v.number()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -35,6 +37,7 @@ export const createKeyResult = mutation({
     localId: v.id("keyResults"),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const {
@@ -52,6 +55,22 @@ export const createKeyResult = mutation({
       assertValidExternalId(teamExternalId, "teamExternalId");
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
       assertValidExternalId(objectiveExternalId, "objectiveExternalId");
+
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("keyResults")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
 
       // Validate parent hierarchy: objective must exist in local tables
       const parentObjective = await ctx.db
@@ -87,7 +106,8 @@ export const createKeyResult = mutation({
         };
       }
 
-      const externalId = generateExternalId(sourceApp, "keyResult");
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? generateExternalId(sourceApp, "keyResult");
       const slug = generateSlug(sourceApp, `kr-${sourceApp}`);
       const now = Date.now();
 
@@ -100,6 +120,7 @@ export const createKeyResult = mutation({
         forecastValue,
         targetValue,
         slug,
+        metadata: args.metadata,
         syncStatus: "pending",
         createdAt: now,
       });
@@ -151,6 +172,40 @@ export const createKeyResult = mutation({
 // ============================================================================
 // LOCAL QUERY FUNCTIONS
 // ============================================================================
+
+/**
+ * Gets a single key result by its externalId
+ */
+export const getKeyResultByExternalId = query({
+  args: {
+    externalId: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id("keyResults"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      objectiveExternalId: v.string(),
+      indicatorExternalId: v.string(),
+      teamExternalId: v.string(),
+      forecastValue: v.optional(v.number()),
+      targetValue: v.optional(v.number()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      updatedAt: v.optional(v.number()),
+      deletedAt: v.optional(v.number()),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("keyResults")
+      .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId))
+      .first();
+  },
+});
 
 /**
  * Gets all local key results for an objective
@@ -231,6 +286,7 @@ export const updateKeyResult = mutation({
     objectiveExternalId: v.optional(v.string()),
     forecastValue: v.optional(v.number()),
     targetValue: v.optional(v.number()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -268,6 +324,7 @@ export const updateKeyResult = mutation({
         ...(objectiveExternalId !== undefined && { objectiveExternalId }),
         ...(forecastValue !== undefined && { forecastValue }),
         ...(targetValue !== undefined && { targetValue }),
+        ...(args.metadata !== undefined && { metadata: args.metadata }),
         syncStatus: "pending",
         updatedAt: now,
       });

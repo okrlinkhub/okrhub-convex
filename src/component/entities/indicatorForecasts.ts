@@ -21,6 +21,7 @@ export const createIndicatorForecast = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     indicatorExternalId: v.string(),
     value: v.number(),
     date: v.number(),
@@ -31,12 +32,29 @@ export const createIndicatorForecast = mutation({
     localId: v.id("indicatorForecasts"),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const { sourceApp, sourceUrl, indicatorExternalId, value, date } = args;
 
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
+
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("indicatorForecasts")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
 
       // Validate parent hierarchy: indicator must exist in local tables
       const parentIndicator = await ctx.db
@@ -55,8 +73,8 @@ export const createIndicatorForecast = mutation({
         };
       }
 
-      const uuid = crypto.randomUUID();
-      const externalId = `${sourceApp}:indicatorForecast:${uuid}`;
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? `${sourceApp}:indicatorForecast:${crypto.randomUUID()}`;
       const now = Date.now();
 
       const localId = await ctx.db.insert("indicatorForecasts", {

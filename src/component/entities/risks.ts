@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
@@ -25,6 +24,7 @@ export const createRisk = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.optional(v.string()),
+    externalId: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
     keyResultExternalId: v.string(), // Required: Reference to key result
@@ -34,13 +34,15 @@ export const createRisk = mutation({
     triggeredIfLower: v.optional(v.boolean()),
     useForecastAsTrigger: v.optional(v.boolean()),
     isRed: v.optional(v.boolean()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("risks"),
+    localId: v.optional(v.id("risks")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
+    existing: v.optional(v.boolean()),
   }),
   handler: async (ctx, args) => {
     const {
@@ -64,6 +66,22 @@ export const createRisk = mutation({
         assertValidExternalId(indicatorExternalId, "indicatorExternalId");
       }
 
+      // Idempotency check: if externalId provided, check if already exists
+      if (args.externalId) {
+        const existing = await ctx.db
+          .query("risks")
+          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
+          .first();
+        if (existing) {
+          return {
+            success: true,
+            externalId: existing.externalId,
+            localId: existing._id,
+            existing: true,
+          };
+        }
+      }
+
       // Validate parent hierarchy: keyResult must exist in local tables
       const parentKeyResult = await ctx.db
         .query("keyResults")
@@ -76,12 +94,14 @@ export const createRisk = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"risks">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent keyResult not found in component tables: ${keyResultExternalId}. Create it first via createKeyResult().`,
         };
       }
 
-      const externalId = generateExternalId(sourceApp, "risk");
+      // Use provided externalId or generate a new one
+      const externalId = args.externalId ?? generateExternalId(sourceApp, "risk");
       const slug = generateSlug(sourceApp, description.substring(0, 30));
       const now = Date.now();
 
@@ -97,6 +117,7 @@ export const createRisk = mutation({
         useForecastAsTrigger,
         isRed,
         slug,
+        metadata: args.metadata,
         syncStatus: "pending",
         createdAt: now,
       });
@@ -140,7 +161,8 @@ export const createRisk = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"risks">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }
@@ -150,6 +172,80 @@ export const createRisk = mutation({
 // ============================================================================
 // LOCAL QUERY FUNCTIONS
 // ============================================================================
+
+/**
+ * Gets a single risk by its externalId
+ */
+export const getRiskByExternalId = query({
+  args: {
+    externalId: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id("risks"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      keyResultExternalId: v.string(),
+      priority: PrioritySchema,
+      indicatorExternalId: v.optional(v.string()),
+      triggerValue: v.optional(v.number()),
+      triggeredIfLower: v.optional(v.boolean()),
+      useForecastAsTrigger: v.optional(v.boolean()),
+      isRed: v.optional(v.boolean()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      deletedAt: v.optional(v.number()),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("risks")
+      .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId))
+      .first();
+  },
+});
+
+/**
+ * Gets all local risks for a team
+ */
+export const getRisksByTeam = query({
+  args: {
+    teamExternalId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("risks"),
+      _creationTime: v.number(),
+      externalId: v.string(),
+      description: v.string(),
+      teamExternalId: v.string(),
+      keyResultExternalId: v.string(),
+      priority: PrioritySchema,
+      indicatorExternalId: v.optional(v.string()),
+      triggerValue: v.optional(v.number()),
+      triggeredIfLower: v.optional(v.boolean()),
+      useForecastAsTrigger: v.optional(v.boolean()),
+      isRed: v.optional(v.boolean()),
+      slug: v.string(),
+      metadata: v.optional(v.any()),
+      syncStatus: SyncStatusSchema,
+      createdAt: v.number(),
+      deletedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("risks")
+      .withIndex("by_team", (q) => q.eq("teamExternalId", args.teamExternalId))
+      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .collect();
+  },
+});
 
 /**
  * Gets all local risks for a key result
@@ -227,6 +323,56 @@ export const getAllRisks = query({
 // ============================================================================
 
 /**
+ * Soft-deletes a risk by setting deletedAt
+ */
+export const deleteRisk = mutation({
+  args: {
+    externalId: v.string(),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    externalId: v.string(),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const { externalId } = args;
+
+    try {
+      const risk = await ctx.db
+        .query("risks")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+
+      if (!risk) {
+        return {
+          success: false,
+          externalId,
+          error: `Risk not found: ${externalId}`,
+        };
+      }
+
+      await ctx.db.patch(risk._id, { deletedAt: Date.now() });
+
+      return {
+        success: true,
+        externalId,
+      };
+    } catch (error) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? (error.message as string)
+          : "Unknown error";
+
+      return {
+        success: false,
+        externalId,
+        error: errorMessage,
+      };
+    }
+  },
+});
+
+/**
  * Updates a risk locally and queues for sync
  * Resets syncStatus to "pending"
  */
@@ -241,6 +387,7 @@ export const updateRisk = mutation({
     triggeredIfLower: v.optional(v.boolean()),
     useForecastAsTrigger: v.optional(v.boolean()),
     isRed: v.optional(v.boolean()),
+    metadata: v.optional(v.any()),
   },
   returns: v.object({
     success: v.boolean(),
@@ -296,6 +443,7 @@ export const updateRisk = mutation({
         ...(triggeredIfLower !== undefined && { triggeredIfLower }),
         ...(useForecastAsTrigger !== undefined && { useForecastAsTrigger }),
         ...(isRed !== undefined && { isRed }),
+        ...(args.metadata !== undefined && { metadata: args.metadata }),
         syncStatus: "pending",
       });
 
