@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
@@ -36,7 +35,7 @@ export const createMilestone = mutation({
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("milestones"),
+    localId: v.optional(v.id("milestones")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
     existing: v.optional(v.boolean()),
@@ -84,7 +83,8 @@ export const createMilestone = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"milestones">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
         };
       }
@@ -143,7 +143,8 @@ export const createMilestone = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"milestones">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }

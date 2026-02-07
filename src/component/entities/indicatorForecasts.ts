@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { assertValidExternalId } from "../lib/validation.js";
 import { SyncStatusSchema } from "../schema.js";
 
@@ -29,7 +28,7 @@ export const createIndicatorForecast = mutation({
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("indicatorForecasts"),
+    localId: v.optional(v.id("indicatorForecasts")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
     existing: v.optional(v.boolean()),
@@ -68,7 +67,8 @@ export const createIndicatorForecast = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"indicatorForecasts">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
         };
       }
@@ -119,7 +119,8 @@ export const createIndicatorForecast = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"indicatorForecasts">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }

@@ -189,7 +189,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -210,7 +210,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -231,7 +231,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -282,7 +282,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -310,7 +310,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -332,7 +332,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -618,7 +618,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -677,7 +677,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -749,7 +749,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -984,7 +984,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -1096,7 +1096,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -1169,7 +1169,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             error?: string;
             existing?: boolean;
             externalId: string;
-            localId: string;
+            localId?: string;
             queueId?: string;
             success: boolean;
           },
@@ -1449,7 +1449,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1470,7 +1470,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1491,7 +1491,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1542,7 +1542,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1566,7 +1566,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },
@@ -1588,7 +1588,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           error?: string;
           existing?: boolean;
           externalId: string;
-          localId: string;
+          localId?: string;
           queueId?: string;
           success: boolean;
         },

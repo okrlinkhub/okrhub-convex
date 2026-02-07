@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
@@ -36,7 +35,7 @@ export const createIndicator = mutation({
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("indicators"),
+    localId: v.optional(v.id("indicators")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
     existing: v.optional(v.boolean()),
@@ -124,7 +123,8 @@ export const createIndicator = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"indicators">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }

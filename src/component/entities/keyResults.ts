@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import type { Id } from "../_generated/dataModel.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import { SyncStatusSchema } from "../schema.js";
@@ -34,7 +33,7 @@ export const createKeyResult = mutation({
   returns: v.object({
     success: v.boolean(),
     externalId: v.string(),
-    localId: v.id("keyResults"),
+    localId: v.optional(v.id("keyResults")),
     queueId: v.optional(v.id("syncQueue")),
     error: v.optional(v.string()),
     existing: v.optional(v.boolean()),
@@ -84,7 +83,8 @@ export const createKeyResult = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"keyResults">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent objective not found in component tables: ${objectiveExternalId}. Create it first via createObjective().`,
         };
       }
@@ -101,7 +101,8 @@ export const createKeyResult = mutation({
         return {
           success: false,
           externalId: "",
-          localId: "" as Id<"keyResults">,
+          localId: undefined,
+          queueId: undefined,
           error: `Parent indicator not found in component tables: ${indicatorExternalId}. Create it first via createIndicator().`,
         };
       }
@@ -162,7 +163,8 @@ export const createKeyResult = mutation({
       return {
         success: false,
         externalId: "",
-        localId: "" as Id<"keyResults">,
+        localId: undefined,
+        queueId: undefined,
         error: errorMessage,
       };
     }
