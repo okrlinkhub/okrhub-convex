@@ -162,7 +162,7 @@ export const externalIdValidator = v.string();
  * Version information for the OKRHub component
  * Used for compatibility checks with LinkHub API
  */
-export const OKRHUB_VERSION = "0.1.0";
+export const OKRHUB_VERSION = "0.1.5";
 
 /**
  * Gets the current component version
