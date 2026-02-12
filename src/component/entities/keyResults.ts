@@ -127,13 +127,13 @@ export const createKeyResult = mutation({
         createdAt: now,
       });
 
-      // Create payload for sync.
-      // weight is managed by LinkHub and intentionally omitted.
+      // Build full payload, then apply managed-field policy
       const payload = JSON.stringify(stripLinkHubManagedFields("keyResult", {
         externalId,
         objectiveExternalId,
         indicatorExternalId,
         teamExternalId,
+        weight: 0,
         forecastValue,
         targetValue,
         sourceUrl,
@@ -332,13 +332,18 @@ export const updateKeyResult = mutation({
         updatedAt: now,
       });
 
-      // Create payload for sync with updated values.
-      // weight is managed by LinkHub and intentionally omitted.
+      const existingWeight =
+        typeof (keyResult as Record<string, unknown>).weight === "number"
+          ? ((keyResult as Record<string, unknown>).weight as number)
+          : undefined;
+
+      // Build full payload from current state, then apply managed-field policy
       const updatedKeyResult = stripLinkHubManagedFields("keyResult", {
         externalId,
         objectiveExternalId: objectiveExternalId ?? keyResult.objectiveExternalId,
         indicatorExternalId: keyResult.indicatorExternalId,
         teamExternalId: keyResult.teamExternalId,
+        weight: existingWeight,
         forecastValue: forecastValue ?? keyResult.forecastValue,
         targetValue: targetValue ?? keyResult.targetValue,
         updatedAt: now,

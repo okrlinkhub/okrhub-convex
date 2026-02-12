@@ -129,6 +129,7 @@ export const createInitiative = mutation({
         assigneeExternalId,
         createdByExternalId,
         status: status ?? "ON_TIME", // Default to ON_TIME
+        priority,
         finishedAt,
         sourceUrl,
         createdAt: now,
@@ -475,7 +476,7 @@ export const updateInitiative = mutation({
         updatedAt: now,
       });
 
-      // Create payload for sync with updated values
+      // Build full payload from current state, then apply managed-field policy
       const updatedInitiative = stripLinkHubManagedFields("initiative", {
         externalId,
         description: description ?? initiative.description,
@@ -484,6 +485,7 @@ export const updateInitiative = mutation({
         assigneeExternalId: assigneeExternalId ?? initiative.assigneeExternalId,
         createdByExternalId: initiative.createdByExternalId,
         status: status ?? initiative.status,
+        priority: priority ?? initiative.priority,
         finishedAt: finishedAt ?? initiative.finishedAt,
         updatedAt: now,
       });

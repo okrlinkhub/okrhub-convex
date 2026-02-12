@@ -128,6 +128,7 @@ export const createRisk = mutation({
         description,
         teamExternalId,
         keyResultExternalId,
+        priority,
         indicatorExternalId,
         triggerValue,
         triggeredIfLower,
@@ -447,12 +448,13 @@ export const updateRisk = mutation({
         syncStatus: "pending",
       });
 
-      // Create payload for sync with updated values
+      // Build full payload from current state, then apply managed-field policy
       const updatedRisk = stripLinkHubManagedFields("risk", {
         externalId,
         description: description ?? risk.description,
         teamExternalId: risk.teamExternalId,
         keyResultExternalId: keyResultExternalId ?? risk.keyResultExternalId,
+        priority: priority ?? risk.priority,
         indicatorExternalId: indicatorExternalId ?? risk.indicatorExternalId,
         triggerValue: triggerValue ?? risk.triggerValue,
         triggeredIfLower: triggeredIfLower ?? risk.triggeredIfLower,
