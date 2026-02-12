@@ -89,8 +89,8 @@ export const keyResultPayloadValidator = v.object({
   // Required: Reference to team
   teamExternalId: v.string(),
 
-  // Required: Weight (percentage 0-100)
-  weight: v.number(),
+  // Optional: weight is managed in LinkHub (consumer side)
+  weight: v.optional(v.number()),
 
   // Optional values
   impact: v.optional(v.number()),
@@ -113,7 +113,7 @@ export const riskPayloadValidator = v.object({
   // Required fields
   description: v.string(),
   teamExternalId: v.string(),
-  priority: PrioritySchema,
+  priority: v.optional(PrioritySchema),
 
   // Required: Reference to parent key result
   keyResultExternalId: v.string(),
@@ -146,7 +146,7 @@ export const initiativePayloadValidator = v.object({
   teamExternalId: v.string(),
   assigneeExternalId: v.string(), // User external ID
   createdByExternalId: v.string(), // User external ID
-  priority: PrioritySchema,
+  priority: v.optional(PrioritySchema),
 
   // Required: Reference to parent risk
   riskExternalId: v.string(),

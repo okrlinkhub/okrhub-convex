@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
+import { stripLinkHubManagedFields } from "../lib/payloadPolicy.js";
 import {
   PrioritySchema,
   SyncStatusSchema,
@@ -122,12 +123,11 @@ export const createRisk = mutation({
         createdAt: now,
       });
 
-      const payload = JSON.stringify({
+      const payload = JSON.stringify(stripLinkHubManagedFields("risk", {
         externalId,
         description,
         teamExternalId,
         keyResultExternalId,
-        priority,
         indicatorExternalId,
         triggerValue,
         triggeredIfLower,
@@ -135,7 +135,7 @@ export const createRisk = mutation({
         isRed,
         sourceUrl,
         createdAt: now,
-      });
+      }));
 
       const queueId = await ctx.db.insert("syncQueue", {
         entityType: "risk",
@@ -448,18 +448,17 @@ export const updateRisk = mutation({
       });
 
       // Create payload for sync with updated values
-      const updatedRisk = {
+      const updatedRisk = stripLinkHubManagedFields("risk", {
         externalId,
         description: description ?? risk.description,
         teamExternalId: risk.teamExternalId,
-        priority: priority ?? risk.priority,
         keyResultExternalId: keyResultExternalId ?? risk.keyResultExternalId,
         indicatorExternalId: indicatorExternalId ?? risk.indicatorExternalId,
         triggerValue: triggerValue ?? risk.triggerValue,
         triggeredIfLower: triggeredIfLower ?? risk.triggeredIfLower,
         useForecastAsTrigger: useForecastAsTrigger ?? risk.useForecastAsTrigger,
         isRed: isRed ?? risk.isRed,
-      };
+      });
 
       const payload = JSON.stringify(updatedRisk);
 

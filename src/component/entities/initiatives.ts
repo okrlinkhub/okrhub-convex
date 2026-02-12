@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
+import { stripLinkHubManagedFields } from "../lib/payloadPolicy.js";
 import {
   PrioritySchema,
   InitiativeStatusSchema,
@@ -120,7 +121,7 @@ export const createInitiative = mutation({
         createdAt: now,
       });
 
-      const payload = JSON.stringify({
+      const payload = JSON.stringify(stripLinkHubManagedFields("initiative", {
         externalId,
         description,
         teamExternalId,
@@ -128,11 +129,10 @@ export const createInitiative = mutation({
         assigneeExternalId,
         createdByExternalId,
         status: status ?? "ON_TIME", // Default to ON_TIME
-        priority,
         finishedAt,
         sourceUrl,
         createdAt: now,
-      });
+      }));
 
       const queueId = await ctx.db.insert("syncQueue", {
         entityType: "initiative",
@@ -476,7 +476,7 @@ export const updateInitiative = mutation({
       });
 
       // Create payload for sync with updated values
-      const updatedInitiative = {
+      const updatedInitiative = stripLinkHubManagedFields("initiative", {
         externalId,
         description: description ?? initiative.description,
         teamExternalId: initiative.teamExternalId,
@@ -484,10 +484,9 @@ export const updateInitiative = mutation({
         assigneeExternalId: assigneeExternalId ?? initiative.assigneeExternalId,
         createdByExternalId: initiative.createdByExternalId,
         status: status ?? initiative.status,
-        priority: priority ?? initiative.priority,
         finishedAt: finishedAt ?? initiative.finishedAt,
         updatedAt: now,
-      };
+      });
 
       const payload = JSON.stringify(updatedInitiative);
 

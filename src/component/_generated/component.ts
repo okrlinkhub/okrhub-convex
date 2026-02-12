@@ -92,7 +92,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 externalUrl?: string;
                 finishedAt?: number;
                 isNew?: boolean;
-                priority: "lowest" | "low" | "medium" | "high" | "highest";
+                priority?: "lowest" | "low" | "medium" | "high" | "highest";
                 riskExternalId: string;
                 status: "ON_TIME" | "OVERDUE" | "FINISHED";
                 teamExternalId: string;
@@ -108,7 +108,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 targetValue?: number;
                 teamExternalId: string;
                 updatedAt?: number;
-                weight: number;
+                weight?: number;
               }>;
               milestones?: Array<{
                 achievedAt?: number;
@@ -140,7 +140,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 indicatorExternalId?: string;
                 isRed?: boolean;
                 keyResultExternalId: string;
-                priority: "lowest" | "low" | "medium" | "high" | "highest";
+                priority?: "lowest" | "low" | "medium" | "high" | "highest";
                 teamExternalId: string;
                 triggerValue?: number;
                 triggeredIfLower?: boolean;

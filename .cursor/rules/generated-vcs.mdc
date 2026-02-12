@@ -1,0 +1,10 @@
+---
+description: Keep Convex generated files in VCS
+globs: **/*
+---
+
+# Regola VCS file _generated Convex
+
+- Versiona sempre `convex/_generated/**` nel repository.
+- Nei componenti Convex, versiona sempre anche `src/component/_generated/**` (o la directory `_generated` equivalente del componente).
+- Questi file vanno tenuti nel changeset anche se non modificati manualmente, perché sono output ufficiali di `npx convex dev` / `npx convex codegen`.

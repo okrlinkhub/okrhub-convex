@@ -22,6 +22,7 @@ import type * as entities_risks from "../entities/risks.js";
 import type * as externalId from "../externalId.js";
 import type * as lib_hmac from "../lib/hmac.js";
 import type * as lib_index from "../lib/index.js";
+import type * as lib_payloadPolicy from "../lib/payloadPolicy.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as okrhub from "../okrhub.js";
@@ -52,6 +53,7 @@ const fullApi: ApiFromModules<{
   externalId: typeof externalId;
   "lib/hmac": typeof lib_hmac;
   "lib/index": typeof lib_index;
+  "lib/payloadPolicy": typeof lib_payloadPolicy;
   "lib/types": typeof lib_types;
   "lib/validation": typeof lib_validation;
   okrhub: typeof okrhub;

@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
 import { generateExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
+import { stripLinkHubManagedFields } from "../lib/payloadPolicy.js";
 import { SyncStatusSchema } from "../schema.js";
 
 // ============================================================================
@@ -126,18 +127,18 @@ export const createKeyResult = mutation({
         createdAt: now,
       });
 
-      // Create payload for sync (weight=0 always)
-      const payload = JSON.stringify({
+      // Create payload for sync.
+      // weight is managed by LinkHub and intentionally omitted.
+      const payload = JSON.stringify(stripLinkHubManagedFields("keyResult", {
         externalId,
         objectiveExternalId,
         indicatorExternalId,
         teamExternalId,
-        weight: 0, // Always 0, managed by linkhub
         forecastValue,
         targetValue,
         sourceUrl,
         createdAt: now,
-      });
+      }));
 
       const queueId = await ctx.db.insert("syncQueue", {
         entityType: "keyResult",
@@ -331,17 +332,17 @@ export const updateKeyResult = mutation({
         updatedAt: now,
       });
 
-      // Create payload for sync with updated values
-      const updatedKeyResult = {
+      // Create payload for sync with updated values.
+      // weight is managed by LinkHub and intentionally omitted.
+      const updatedKeyResult = stripLinkHubManagedFields("keyResult", {
         externalId,
         objectiveExternalId: objectiveExternalId ?? keyResult.objectiveExternalId,
         indicatorExternalId: keyResult.indicatorExternalId,
         teamExternalId: keyResult.teamExternalId,
-        weight: 0, // Always 0, managed by LinkHub
         forecastValue: forecastValue ?? keyResult.forecastValue,
         targetValue: targetValue ?? keyResult.targetValue,
         updatedAt: now,
-      };
+      });
 
       const payload = JSON.stringify(updatedKeyResult);
 
