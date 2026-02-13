@@ -49,17 +49,13 @@ export const entityTypeValidator = v.union(
 const EXTERNAL_ID_REGEX =
   /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|indicatorValue|indicatorForecast|milestone|team|company|user):[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 
-// Simpler regex for basic validation (allows any UUID-like format)
-const EXTERNAL_ID_REGEX_SIMPLE =
-  /^[a-z0-9-]{2,32}:(objective|keyResult|risk|initiative|indicator|indicatorValue|indicatorForecast|milestone|team|company|user):[a-f0-9-]{36}$/;
-
 /**
  * Validates an external ID format
  * @param id - The external ID to validate
  * @returns true if the ID is valid, false otherwise
  */
 export function validateExternalId(id: string): boolean {
-  return EXTERNAL_ID_REGEX_SIMPLE.test(id);
+  return EXTERNAL_ID_REGEX.test(id);
 }
 
 /**

@@ -55,20 +55,27 @@ export const createMilestone = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
-      // Idempotency check: if externalId provided, check if already exists
-      if (args.externalId) {
-        const existing = await ctx.db
-          .query("milestones")
-          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
-          .first();
-        if (existing) {
-          return {
-            success: true,
-            externalId: existing.externalId,
-            localId: existing._id,
-            existing: true,
-          };
-        }
+      const externalId =
+        args.externalId ??
+        generateScopedDescriptionExternalId(
+          sourceApp,
+          "milestone",
+          indicatorExternalId,
+          description
+        );
+
+      // Idempotency check: always check resolved externalId
+      const existing = await ctx.db
+        .query("milestones")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+      if (existing) {
+        return {
+          success: true,
+          externalId: existing.externalId,
+          localId: existing._id,
+          existing: true,
+        };
       }
 
       // Validate parent hierarchy: indicator must exist in local tables
@@ -89,15 +96,7 @@ export const createMilestone = mutation({
         };
       }
 
-      // Use provided externalId or generate a new one
-      const externalId =
-        args.externalId ??
-        generateScopedDescriptionExternalId(
-          sourceApp,
-          "milestone",
-          indicatorExternalId,
-          description
-        );
+      // externalId already resolved above
       const slug = generateSlug(sourceApp, description);
       const now = Date.now();
 

@@ -1033,10 +1033,15 @@ function ObjectivesSection({ teamExternalId }: { teamExternalId: string }) {
         description,
         teamExternalId,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created objective: ${res.externalId}` });
         setTitle("");
         setDescription("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate objective blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1158,11 +1163,16 @@ function KeyResultsSection({ teamExternalId, indicatorExternalId }: { teamExtern
         forecastValue: forecastValue ? parseFloat(forecastValue) : undefined,
         targetValue: targetValue ? parseFloat(targetValue) : undefined,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created key result: ${res.externalId}` });
         setObjectiveExternalId("");
         setForecastValue("");
         setTargetValue("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate key result blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1314,7 +1324,7 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
         useForecastAsTrigger: useForecastAsTrigger || undefined,
         isRed: isRed || undefined,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created risk: ${res.externalId}` });
         setDescription("");
         setKeyResultExternalId("");
@@ -1323,6 +1333,11 @@ function RisksSection({ teamExternalId }: { teamExternalId: string }) {
         setTriggeredIfLower(false);
         setUseForecastAsTrigger(false);
         setIsRed(false);
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate risk blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1509,11 +1524,16 @@ function InitiativesSection({ teamExternalId, userExternalId }: { teamExternalId
         status,
         finishedAt: finishedAt ? new Date(finishedAt).getTime() : undefined,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created initiative: ${res.externalId}` });
         setDescription("");
         setRiskExternalId("");
         setFinishedAt("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate initiative blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1662,12 +1682,17 @@ function IndicatorsSection({ companyExternalId, onIndicatorCreated }: { companyE
         periodicity,
         isReverse: isReverse || undefined,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created indicator: ${res.externalId}` });
         onIndicatorCreated(res.externalId);
         setDescription("");
         setSymbol("");
         setIsReverse(false);
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate indicator blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1802,9 +1827,14 @@ function IndicatorValuesSection({ indicatorExternalId }: { indicatorExternalId: 
         value: parseFloat(value),
         date: new Date(date ?? new Date()).getTime(),
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created value: ${res.externalId}` });
         setValue("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate indicator value blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -1922,9 +1952,14 @@ function IndicatorForecastsSection({ indicatorExternalId }: { indicatorExternalI
         value: parseFloat(value),
         date: new Date(date ?? new Date()).getTime(),
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created forecast: ${res.externalId}` });
         setValue("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate indicator forecast blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }
@@ -2050,13 +2085,18 @@ function MilestonesSection({ indicatorExternalId }: { indicatorExternalId: strin
         status, // Required, default ON_TIME
         achievedAt: achievedAt ? new Date(achievedAt).getTime() : undefined,
       });
-      if (res.success) {
+      if (res.success && !res.existing) {
         setResult({ success: true, message: `Created milestone: ${res.externalId}` });
         setDescription("");
         setValue("");
         setForecastDate("");
         setStatus("ON_TIME");
         setAchievedAt("");
+      } else if (res.success && res.existing) {
+        setResult({
+          success: false,
+          message: `Duplicate milestone blocked: ${res.externalId} already exists`,
+        });
       } else {
         setResult({ success: false, message: res.error ?? "Failed to create" });
       }

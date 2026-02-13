@@ -42,23 +42,6 @@ export const createObjective = mutation({
       // Validate team external ID
       assertValidExternalId(teamExternalId, "teamExternalId");
 
-      // Idempotency check: if externalId provided, check if already exists
-      if (args.externalId) {
-        const existing = await ctx.db
-          .query("objectives")
-          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
-          .first();
-        if (existing) {
-          return {
-            success: true,
-            externalId: existing.externalId,
-            localId: existing._id,
-            existing: true,
-          };
-        }
-      }
-
-      // Use provided externalId or generate a new one
       const externalId =
         args.externalId ??
         generateScopedDescriptionExternalId(
@@ -67,6 +50,22 @@ export const createObjective = mutation({
           teamExternalId,
           description
         );
+
+      // Idempotency check: always check resolved externalId
+      const existing = await ctx.db
+        .query("objectives")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+      if (existing) {
+        return {
+          success: true,
+          externalId: existing.externalId,
+          localId: existing._id,
+          existing: true,
+        };
+      }
+
+      // externalId already resolved above
       const slug = generateSlug(sourceApp, title);
       const now = Date.now();
 

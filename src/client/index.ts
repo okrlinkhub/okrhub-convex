@@ -12,9 +12,6 @@ import {
 } from "convex/server";
 import type {
   Auth,
-  GenericActionCtx,
-  GenericDataModel,
-  GenericMutationCtx,
   HttpRouter,
 } from "convex/server";
 import { v } from "convex/values";
@@ -1068,13 +1065,3 @@ export function registerRoutes(
   });
 }
 
-// Convenient types for `ctx` args
-type ActionCtx = Pick<
-  GenericActionCtx<GenericDataModel>,
-  "runQuery" | "runMutation" | "runAction"
->;
-
-type MutationCtx = Pick<
-  GenericMutationCtx<GenericDataModel>,
-  "runQuery" | "runMutation" | "db"
->;

@@ -40,20 +40,27 @@ export const createIndicatorForecast = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
-      // Idempotency check: if externalId provided, check if already exists
-      if (args.externalId) {
-        const existing = await ctx.db
-          .query("indicatorForecasts")
-          .withIndex("by_external_id", (q) => q.eq("externalId", args.externalId!))
-          .first();
-        if (existing) {
-          return {
-            success: true,
-            externalId: existing.externalId,
-            localId: existing._id,
-            existing: true,
-          };
-        }
+      const externalId =
+        args.externalId ??
+        generateIndicatorTimeSeriesExternalId(
+          sourceApp,
+          "indicatorForecast",
+          indicatorExternalId,
+          date
+        );
+
+      // Idempotency check: always check resolved externalId
+      const existing = await ctx.db
+        .query("indicatorForecasts")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+      if (existing) {
+        return {
+          success: true,
+          externalId: existing.externalId,
+          localId: existing._id,
+          existing: true,
+        };
       }
 
       // Validate parent hierarchy: indicator must exist in local tables
@@ -74,15 +81,7 @@ export const createIndicatorForecast = mutation({
         };
       }
 
-      // Use provided externalId or generate a new one
-      const externalId =
-        args.externalId ??
-        generateIndicatorTimeSeriesExternalId(
-          sourceApp,
-          "indicatorForecast",
-          indicatorExternalId,
-          date
-        );
+      // externalId already resolved above
       const now = Date.now();
 
       const localId = await ctx.db.insert("indicatorForecasts", {
