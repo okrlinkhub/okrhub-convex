@@ -6,6 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
+import { generateIndicatorTimeSeriesExternalId } from "../externalId.js";
 import { assertValidExternalId } from "../lib/validation.js";
 import { SyncStatusSchema } from "../schema.js";
 
@@ -19,7 +20,7 @@ import { SyncStatusSchema } from "../schema.js";
 export const createIndicatorForecast = mutation({
   args: {
     sourceApp: v.string(),
-    sourceUrl: v.optional(v.string()),
+    sourceUrl: v.string(),
     externalId: v.optional(v.string()),
     indicatorExternalId: v.string(),
     value: v.number(),
@@ -74,7 +75,14 @@ export const createIndicatorForecast = mutation({
       }
 
       // Use provided externalId or generate a new one
-      const externalId = args.externalId ?? `${sourceApp}:indicatorForecast:${crypto.randomUUID()}`;
+      const externalId =
+        args.externalId ??
+        generateIndicatorTimeSeriesExternalId(
+          sourceApp,
+          "indicatorForecast",
+          indicatorExternalId,
+          date
+        );
       const now = Date.now();
 
       const localId = await ctx.db.insert("indicatorForecasts", {

@@ -6,7 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import { generateExternalId } from "../externalId.js";
+import { generateKeyResultDeterministicExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import { stripLinkHubManagedFields } from "../lib/payloadPolicy.js";
 import { SyncStatusSchema } from "../schema.js";
@@ -22,7 +22,7 @@ import { SyncStatusSchema } from "../schema.js";
 export const createKeyResult = mutation({
   args: {
     sourceApp: v.string(),
-    sourceUrl: v.optional(v.string()),
+    sourceUrl: v.string(),
     externalId: v.optional(v.string()),
     objectiveExternalId: v.string(), // Required: Reference to objective
     indicatorExternalId: v.string(),
@@ -109,7 +109,14 @@ export const createKeyResult = mutation({
       }
 
       // Use provided externalId or generate a new one
-      const externalId = args.externalId ?? generateExternalId(sourceApp, "keyResult");
+      const externalId =
+        args.externalId ??
+        generateKeyResultDeterministicExternalId(
+          sourceApp,
+          teamExternalId,
+          objectiveExternalId,
+          indicatorExternalId
+        );
       const slug = generateSlug(sourceApp, `kr-${sourceApp}`);
       const now = Date.now();
 

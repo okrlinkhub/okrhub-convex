@@ -355,7 +355,7 @@ export function exposeApi(
     createObjective: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         title: v.string(),
         description: v.string(),
@@ -377,7 +377,7 @@ export function exposeApi(
     createKeyResult: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         objectiveExternalId: v.string(), // Required
         indicatorExternalId: v.string(),
@@ -400,7 +400,7 @@ export function exposeApi(
     createRisk: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
@@ -434,7 +434,7 @@ export function exposeApi(
     createInitiative: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         description: v.string(),
         teamExternalId: v.string(),
@@ -472,7 +472,7 @@ export function exposeApi(
     createIndicator: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         companyExternalId: v.string(),
         description: v.string(),
@@ -501,7 +501,7 @@ export function exposeApi(
     createIndicatorValue: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         value: v.number(),
@@ -521,7 +521,7 @@ export function exposeApi(
     createIndicatorForecast: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         value: v.number(),
@@ -541,7 +541,7 @@ export function exposeApi(
     createMilestone: mutationGeneric({
       args: {
         sourceApp: v.string(),
-        sourceUrl: v.optional(v.string()),
+        sourceUrl: v.string(),
         externalId: v.optional(v.string()),
         indicatorExternalId: v.string(),
         description: v.string(),

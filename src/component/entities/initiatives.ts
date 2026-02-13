@@ -6,7 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import { generateExternalId } from "../externalId.js";
+import { generateScopedDescriptionExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import { stripLinkHubManagedFields } from "../lib/payloadPolicy.js";
 import {
@@ -26,7 +26,7 @@ import {
 export const createInitiative = mutation({
   args: {
     sourceApp: v.string(),
-    sourceUrl: v.optional(v.string()),
+    sourceUrl: v.string(),
     externalId: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
@@ -101,7 +101,14 @@ export const createInitiative = mutation({
       }
 
       // Use provided externalId or generate a new one
-      const externalId = args.externalId ?? generateExternalId(sourceApp, "initiative");
+      const externalId =
+        args.externalId ??
+        generateScopedDescriptionExternalId(
+          sourceApp,
+          "initiative",
+          teamExternalId,
+          description
+        );
       const slug = generateSlug(sourceApp, description.substring(0, 30));
       const now = Date.now();
 

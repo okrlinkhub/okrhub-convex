@@ -93,6 +93,119 @@ export function generateExternalId(
 }
 
 /**
+ * Normalizes a text fragment for deterministic externalId generation.
+ * Keeps IDs stable across casing and spacing variations.
+ */
+function normalizePart(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * Creates a deterministic UUID-like value from a normalized seed.
+ * Output keeps UUID v4 shape to stay backward-compatible with validators.
+ */
+function deterministicUuidFromSeed(seed: string): string {
+  // FNV-1a 32-bit hash for deterministic, runtime-safe hashing.
+  const fnv1a = (input: string): number => {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < input.length; i += 1) {
+      hash ^= input.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return hash >>> 0;
+  };
+
+  const h1 = fnv1a(`${seed}|1`).toString(16).padStart(8, "0");
+  const h2 = fnv1a(`${seed}|2`).toString(16).padStart(8, "0");
+  const h3 = fnv1a(`${seed}|3`).toString(16).padStart(8, "0");
+  const h4 = fnv1a(`${seed}|4`).toString(16).padStart(8, "0");
+  const raw = `${h1}${h2}${h3}${h4}`;
+
+  const part1 = raw.slice(0, 8);
+  const part2 = raw.slice(8, 12);
+  const part3 = `4${raw.slice(13, 16)}`; // UUID v4 marker
+  const variantNibble = ((parseInt(raw.slice(16, 17), 16) & 0x3) | 0x8)
+    .toString(16);
+  const part4 = `${variantNibble}${raw.slice(17, 20)}`; // UUID variant 10xx
+  const part5 = raw.slice(20, 32);
+
+  return `${part1}-${part2}-${part3}-${part4}-${part5}`;
+}
+
+/**
+ * Builds a deterministic external ID from canonical parts.
+ */
+export function generateDeterministicExternalId(
+  sourceApp: string,
+  entityType: EntityType,
+  parts: string[]
+): string {
+  if (!validateSourceApp(sourceApp)) {
+    throw new Error(
+      `Invalid sourceApp format: "${sourceApp}". Must be 2-32 lowercase alphanumeric characters or hyphens.`
+    );
+  }
+
+  const normalizedParts = parts.map(normalizePart);
+  const seed = `${sourceApp}|${entityType}|${normalizedParts.join("|")}`;
+  const uuid = deterministicUuidFromSeed(seed);
+  return `${sourceApp}:${entityType}:${uuid}`;
+}
+
+/**
+ * Deterministic ID for entities using scope + description.
+ */
+export function generateScopedDescriptionExternalId(
+  sourceApp: string,
+  entityType:
+    | "objective"
+    | "risk"
+    | "initiative"
+    | "indicator"
+    | "milestone",
+  scopeId: string,
+  description: string
+): string {
+  return generateDeterministicExternalId(sourceApp, entityType, [
+    scopeId,
+    description,
+  ]);
+}
+
+/**
+ * Deterministic ID for key results:
+ * teamExternalId + objectiveExternalId + indicatorExternalId.
+ */
+export function generateKeyResultDeterministicExternalId(
+  sourceApp: string,
+  teamExternalId: string,
+  objectiveExternalId: string,
+  indicatorExternalId: string
+): string {
+  return generateDeterministicExternalId(sourceApp, "keyResult", [
+    teamExternalId,
+    objectiveExternalId,
+    indicatorExternalId,
+  ]);
+}
+
+/**
+ * Deterministic ID for indicator values/forecasts:
+ * indicatorExternalId + date.
+ */
+export function generateIndicatorTimeSeriesExternalId(
+  sourceApp: string,
+  entityType: "indicatorValue" | "indicatorForecast",
+  indicatorExternalId: string,
+  date: number
+): string {
+  return generateDeterministicExternalId(sourceApp, entityType, [
+    indicatorExternalId,
+    String(date),
+  ]);
+}
+
+/**
  * Parsed external ID structure
  */
 export interface ParsedExternalId {

@@ -182,7 +182,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               | "semesterly"
               | "yearly";
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             symbol: string;
           },
           {
@@ -203,7 +203,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             value: number;
           },
           {
@@ -224,7 +224,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             value: number;
           },
           {
@@ -250,7 +250,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             riskExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             status?: "ON_TIME" | "OVERDUE" | "FINISHED";
             teamExternalId: string;
           },
@@ -274,7 +274,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             metadata?: any;
             objectiveExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             targetValue?: number;
             teamExternalId: string;
           },
@@ -298,7 +298,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             status?:
               | "ON_TIME"
               | "OVERDUE"
@@ -324,7 +324,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             metadata?: any;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             teamExternalId: string;
             title: string;
           },
@@ -350,7 +350,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             teamExternalId: string;
             triggerValue?: number;
             triggeredIfLower?: boolean;
@@ -611,7 +611,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             value: number;
           },
           {
@@ -670,7 +670,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               | "semesterly"
               | "yearly";
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             symbol: string;
           },
           {
@@ -742,7 +742,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             value: number;
           },
           {
@@ -798,7 +798,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             riskExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             status?: "ON_TIME" | "OVERDUE" | "FINISHED";
             teamExternalId: string;
           },
@@ -976,7 +976,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             metadata?: any;
             objectiveExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             targetValue?: number;
             teamExternalId: string;
           },
@@ -1084,7 +1084,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             status?:
               | "ON_TIME"
               | "OVERDUE"
@@ -1161,7 +1161,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             externalId?: string;
             metadata?: any;
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             teamExternalId: string;
             title: string;
           },
@@ -1264,7 +1264,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
             sourceApp: string;
-            sourceUrl?: string;
+            sourceUrl: string;
             teamExternalId: string;
             triggerValue?: number;
             triggeredIfLower?: boolean;
@@ -1442,7 +1442,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | "semesterly"
             | "yearly";
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           symbol: string;
         },
         {
@@ -1463,7 +1463,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           value: number;
         },
         {
@@ -1484,7 +1484,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           value: number;
         },
         {
@@ -1510,7 +1510,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           riskExternalId: string;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           status?: "ON_TIME" | "OVERDUE" | "FINISHED";
           teamExternalId: string;
         },
@@ -1534,7 +1534,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           metadata?: any;
           objectiveExternalId: string;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           targetValue?: number;
           teamExternalId: string;
         },
@@ -1558,7 +1558,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           forecastDate?: number;
           indicatorExternalId: string;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           status?: "ON_TIME" | "OVERDUE" | "ACHIEVED_ON_TIME" | "ACHIEVED_LATE";
           value: number;
         },
@@ -1580,7 +1580,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           externalId?: string;
           metadata?: any;
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           teamExternalId: string;
           title: string;
         },
@@ -1606,7 +1606,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           metadata?: any;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
           sourceApp: string;
-          sourceUrl?: string;
+          sourceUrl: string;
           teamExternalId: string;
           triggerValue?: number;
           triggeredIfLower?: boolean;

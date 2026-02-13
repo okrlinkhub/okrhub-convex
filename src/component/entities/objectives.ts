@@ -6,7 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import { generateExternalId } from "../externalId.js";
+import { generateScopedDescriptionExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import { SyncStatusSchema } from "../schema.js";
 
@@ -20,7 +20,7 @@ import { SyncStatusSchema } from "../schema.js";
 export const createObjective = mutation({
   args: {
     sourceApp: v.string(),
-    sourceUrl: v.optional(v.string()),
+    sourceUrl: v.string(),
     externalId: v.optional(v.string()),
     title: v.string(),
     description: v.string(),
@@ -59,7 +59,14 @@ export const createObjective = mutation({
       }
 
       // Use provided externalId or generate a new one
-      const externalId = args.externalId ?? generateExternalId(sourceApp, "objective");
+      const externalId =
+        args.externalId ??
+        generateScopedDescriptionExternalId(
+          sourceApp,
+          "objective",
+          teamExternalId,
+          description
+        );
       const slug = generateSlug(sourceApp, title);
       const now = Date.now();
 

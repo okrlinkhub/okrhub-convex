@@ -6,7 +6,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server.js";
-import { generateExternalId } from "../externalId.js";
+import { generateScopedDescriptionExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
 import {
   PeriodicitySchema,
@@ -23,7 +23,7 @@ import {
 export const createIndicator = mutation({
   args: {
     sourceApp: v.string(),
-    sourceUrl: v.optional(v.string()),
+    sourceUrl: v.string(),
     externalId: v.optional(v.string()),
     companyExternalId: v.string(),
     description: v.string(),
@@ -71,7 +71,14 @@ export const createIndicator = mutation({
       }
 
       // Use provided externalId or generate a new one
-      const externalId = args.externalId ?? generateExternalId(sourceApp, "indicator");
+      const externalId =
+        args.externalId ??
+        generateScopedDescriptionExternalId(
+          sourceApp,
+          "indicator",
+          companyExternalId,
+          description
+        );
       const slug = generateSlug(sourceApp, description);
       const now = Date.now();
 
