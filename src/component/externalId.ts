@@ -116,16 +116,16 @@ function deterministicUuidFromSeed(seed: string): string {
   const h3 = fnv1a(`${seed}|3`).toString(16).padStart(8, "0");
   const h4 = fnv1a(`${seed}|4`).toString(16).padStart(8, "0");
   const raw = `${h1}${h2}${h3}${h4}`;
+  const bytes: number[] = Array.from({ length: 16 }, (_, index) =>
+    parseInt(raw.slice(index * 2, index * 2 + 2), 16)
+  );
 
-  const part1 = raw.slice(0, 8);
-  const part2 = raw.slice(8, 12);
-  const part3 = `4${raw.slice(13, 16)}`; // UUID v4 marker
-  const variantNibble = ((parseInt(raw.slice(16, 17), 16) & 0x3) | 0x8)
-    .toString(16);
-  const part4 = `${variantNibble}${raw.slice(17, 20)}`; // UUID variant 10xx
-  const part5 = raw.slice(20, 32);
+  // Preserve all seed-derived bits, except UUID-mandated version/variant bits.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // UUID v4 marker
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // UUID variant 10xx
 
-  return `${part1}-${part2}-${part3}-${part4}-${part5}`;
+  const hex = bytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
 /**
