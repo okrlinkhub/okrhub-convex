@@ -24,7 +24,6 @@ export const createMilestone = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     indicatorExternalId: v.string(),
     description: v.string(),
     value: v.number(),
@@ -55,14 +54,12 @@ export const createMilestone = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
-      const externalId =
-        args.externalId ??
-        generateScopedDescriptionExternalId(
-          sourceApp,
-          "milestone",
-          indicatorExternalId,
-          description
-        );
+      const externalId = generateScopedDescriptionExternalId(
+        sourceApp,
+        "milestone",
+        indicatorExternalId,
+        description
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db

@@ -21,7 +21,6 @@ export const createObjective = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     title: v.string(),
     description: v.string(),
     teamExternalId: v.string(),
@@ -42,14 +41,12 @@ export const createObjective = mutation({
       // Validate team external ID
       assertValidExternalId(teamExternalId, "teamExternalId");
 
-      const externalId =
-        args.externalId ??
-        generateScopedDescriptionExternalId(
-          sourceApp,
-          "objective",
-          teamExternalId,
-          description
-        );
+      const externalId = generateScopedDescriptionExternalId(
+        sourceApp,
+        "objective",
+        teamExternalId,
+        description
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db

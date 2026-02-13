@@ -25,7 +25,6 @@ export const createRisk = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
     keyResultExternalId: v.string(), // Required: Reference to key result
@@ -67,14 +66,12 @@ export const createRisk = mutation({
         assertValidExternalId(indicatorExternalId, "indicatorExternalId");
       }
 
-      const externalId =
-        args.externalId ??
-        generateScopedDescriptionExternalId(
-          sourceApp,
-          "risk",
-          teamExternalId,
-          description
-        );
+      const externalId = generateScopedDescriptionExternalId(
+        sourceApp,
+        "risk",
+        teamExternalId,
+        description
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db

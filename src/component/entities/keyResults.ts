@@ -23,7 +23,6 @@ export const createKeyResult = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     objectiveExternalId: v.string(), // Required: Reference to objective
     indicatorExternalId: v.string(),
     teamExternalId: v.string(),
@@ -56,14 +55,12 @@ export const createKeyResult = mutation({
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
       assertValidExternalId(objectiveExternalId, "objectiveExternalId");
 
-      const externalId =
-        args.externalId ??
-        generateKeyResultDeterministicExternalId(
-          sourceApp,
-          teamExternalId,
-          objectiveExternalId,
-          indicatorExternalId
-        );
+      const externalId = generateKeyResultDeterministicExternalId(
+        sourceApp,
+        teamExternalId,
+        objectiveExternalId,
+        indicatorExternalId
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db

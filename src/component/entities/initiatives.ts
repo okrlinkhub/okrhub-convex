@@ -27,7 +27,6 @@ export const createInitiative = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     description: v.string(),
     teamExternalId: v.string(),
     riskExternalId: v.string(), // Required: Reference to risk
@@ -66,14 +65,12 @@ export const createInitiative = mutation({
       assertValidExternalId(createdByExternalId, "createdByExternalId");
       assertValidExternalId(riskExternalId, "riskExternalId");
 
-      const externalId =
-        args.externalId ??
-        generateScopedDescriptionExternalId(
-          sourceApp,
-          "initiative",
-          teamExternalId,
-          description
-        );
+      const externalId = generateScopedDescriptionExternalId(
+        sourceApp,
+        "initiative",
+        teamExternalId,
+        description
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db

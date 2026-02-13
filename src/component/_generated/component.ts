@@ -172,7 +172,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             companyExternalId: string;
             description: string;
-            externalId?: string;
             isReverse?: boolean;
             metadata?: any;
             periodicity:
@@ -200,7 +199,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
-            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl: string;
@@ -221,7 +219,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
-            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl: string;
@@ -244,7 +241,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             assigneeExternalId: string;
             createdByExternalId: string;
             description: string;
-            externalId?: string;
             finishedAt?: number;
             metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
@@ -268,7 +264,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "mutation",
           "internal",
           {
-            externalId?: string;
             forecastValue?: number;
             indicatorExternalId: string;
             metadata?: any;
@@ -294,7 +289,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             achievedAt?: number;
             description: string;
-            externalId?: string;
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
@@ -321,7 +315,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
-            externalId?: string;
             metadata?: any;
             sourceApp: string;
             sourceUrl: string;
@@ -343,7 +336,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
-            externalId?: string;
             indicatorExternalId?: string;
             isRed?: boolean;
             keyResultExternalId: string;
@@ -608,7 +600,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
-            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl: string;
@@ -660,7 +651,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             companyExternalId: string;
             description: string;
-            externalId?: string;
             isReverse?: boolean;
             metadata?: any;
             periodicity:
@@ -739,7 +729,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             date: number;
-            externalId?: string;
             indicatorExternalId: string;
             sourceApp: string;
             sourceUrl: string;
@@ -792,7 +781,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             assigneeExternalId: string;
             createdByExternalId: string;
             description: string;
-            externalId?: string;
             finishedAt?: number;
             metadata?: any;
             priority: "lowest" | "low" | "medium" | "high" | "highest";
@@ -970,7 +958,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "mutation",
           "internal",
           {
-            externalId?: string;
             forecastValue?: number;
             indicatorExternalId: string;
             metadata?: any;
@@ -1080,7 +1067,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           {
             achievedAt?: number;
             description: string;
-            externalId?: string;
             forecastDate?: number;
             indicatorExternalId: string;
             sourceApp: string;
@@ -1158,7 +1144,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
-            externalId?: string;
             metadata?: any;
             sourceApp: string;
             sourceUrl: string;
@@ -1257,7 +1242,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           "internal",
           {
             description: string;
-            externalId?: string;
             indicatorExternalId?: string;
             isRed?: boolean;
             keyResultExternalId: string;
@@ -1432,7 +1416,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           companyExternalId: string;
           description: string;
-          externalId?: string;
           isReverse?: boolean;
           metadata?: any;
           periodicity:
@@ -1460,7 +1443,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           date: number;
-          externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
           sourceUrl: string;
@@ -1481,7 +1463,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           date: number;
-          externalId?: string;
           indicatorExternalId: string;
           sourceApp: string;
           sourceUrl: string;
@@ -1504,7 +1485,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           assigneeExternalId: string;
           createdByExternalId: string;
           description: string;
-          externalId?: string;
           finishedAt?: number;
           metadata?: any;
           priority: "lowest" | "low" | "medium" | "high" | "highest";
@@ -1528,7 +1508,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "mutation",
         "internal",
         {
-          externalId?: string;
           forecastValue?: number;
           indicatorExternalId: string;
           metadata?: any;
@@ -1554,7 +1533,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         {
           achievedAt?: number;
           description: string;
-          externalId?: string;
           forecastDate?: number;
           indicatorExternalId: string;
           sourceApp: string;
@@ -1577,7 +1555,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           description: string;
-          externalId?: string;
           metadata?: any;
           sourceApp: string;
           sourceUrl: string;
@@ -1599,7 +1576,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           description: string;
-          externalId?: string;
           indicatorExternalId?: string;
           isRed?: boolean;
           keyResultExternalId: string;

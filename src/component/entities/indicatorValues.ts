@@ -21,7 +21,6 @@ export const createIndicatorValue = mutation({
   args: {
     sourceApp: v.string(),
     sourceUrl: v.string(),
-    externalId: v.optional(v.string()),
     indicatorExternalId: v.string(),
     value: v.number(),
     date: v.number(),
@@ -40,14 +39,12 @@ export const createIndicatorValue = mutation({
     try {
       assertValidExternalId(indicatorExternalId, "indicatorExternalId");
 
-      const externalId =
-        args.externalId ??
-        generateIndicatorTimeSeriesExternalId(
-          sourceApp,
-          "indicatorValue",
-          indicatorExternalId,
-          date
-        );
+      const externalId = generateIndicatorTimeSeriesExternalId(
+        sourceApp,
+        "indicatorValue",
+        indicatorExternalId,
+        date
+      );
 
       // Idempotency check: always check resolved externalId
       const existing = await ctx.db
