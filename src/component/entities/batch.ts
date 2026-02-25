@@ -5,6 +5,7 @@
  */
 
 import { v } from "convex/values";
+import { anyApi } from "convex/server";
 import { mutation } from "../_generated/server.js";
 import type { Id } from "../_generated/dataModel.js";
 import type { EntityType } from "../externalId.js";
@@ -59,17 +60,17 @@ export const insertBatch = mutation({
           }
 
           const payload = JSON.stringify(item);
-          const queueId = await ctx.db.insert("syncQueue", {
-            entityType: key,
-            externalId:
-              "externalId" in item && typeof item.externalId === "string"
-                ? item.externalId
-                : `batch-${Date.now()}`,
-            payload,
-            status: "pending",
-            attempts: 0,
-            createdAt: Date.now(),
-          });
+          const queueId = await ctx.runMutation(
+            (anyApi as any).sync.queue.addToSyncQueue,
+            {
+              entityType: key,
+              externalId:
+                "externalId" in item && typeof item.externalId === "string"
+                  ? item.externalId
+                  : `batch-${Date.now()}`,
+              payload,
+            }
+          );
           queueIds.push(queueId);
         } catch (error) {
           const errorMessage =

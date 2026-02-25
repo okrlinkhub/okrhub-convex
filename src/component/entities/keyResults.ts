@@ -5,6 +5,7 @@
  */
 
 import { v } from "convex/values";
+import { anyApi } from "convex/server";
 import { mutation, query } from "../_generated/server.js";
 import { generateKeyResultDeterministicExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
@@ -143,14 +144,14 @@ export const createKeyResult = mutation({
         createdAt: now,
       }));
 
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "keyResult",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "keyResult",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,
@@ -355,14 +356,14 @@ export const updateKeyResult = mutation({
       const payload = JSON.stringify(updatedKeyResult);
 
       // Add to sync queue
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "keyResult",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "keyResult",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,

@@ -5,6 +5,7 @@
  */
 
 import { v } from "convex/values";
+import { anyApi } from "convex/server";
 import { mutation, query } from "../_generated/server.js";
 import { generateScopedDescriptionExternalId } from "../externalId.js";
 import { assertValidExternalId, generateSlug } from "../lib/validation.js";
@@ -122,14 +123,14 @@ export const createMilestone = mutation({
         createdAt: now,
       });
 
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "milestone",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "milestone",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,
@@ -259,14 +260,14 @@ export const updateMilestone = mutation({
       const payload = JSON.stringify(updatedMilestone);
 
       // Add to sync queue
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "milestone",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "milestone",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,

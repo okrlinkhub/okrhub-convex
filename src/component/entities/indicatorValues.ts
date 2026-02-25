@@ -5,6 +5,7 @@
  */
 
 import { v } from "convex/values";
+import { anyApi } from "convex/server";
 import { mutation, query } from "../_generated/server.js";
 import { generateIndicatorTimeSeriesExternalId } from "../externalId.js";
 import { assertValidExternalId } from "../lib/validation.js";
@@ -99,14 +100,14 @@ export const createIndicatorValue = mutation({
         createdAt: now,
       });
 
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "indicatorValue",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "indicatorValue",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,
@@ -215,14 +216,14 @@ export const updateIndicatorValue = mutation({
       const payload = JSON.stringify(updatedIndicatorValue);
 
       // Add to sync queue
-      const queueId = await ctx.db.insert("syncQueue", {
-        entityType: "indicatorValue",
-        externalId,
-        payload,
-        status: "pending",
-        attempts: 0,
-        createdAt: now,
-      });
+      const queueId = await ctx.runMutation(
+        (anyApi as any).sync.queue.addToSyncQueue,
+        {
+          entityType: "indicatorValue",
+          externalId,
+          payload,
+        }
+      );
 
       return {
         success: true,
