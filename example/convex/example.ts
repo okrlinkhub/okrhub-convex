@@ -50,7 +50,8 @@ export { generateExternalId };
 // ============================================================================
 
 /**
- * Query pending sync items with a default limit
+ * Query pending sync items with a default limit.
+ * Returns lightweight queue metadata (payload excluded).
  */
 export const listPendingSync = query({
   args: {},

@@ -352,26 +352,18 @@ const parsed = parseExternalId(id);
 
 ## Processing the Sync Queue
 
-Entities are first stored in a sync queue, then processed asynchronously. Set up a cron job for automatic processing:
+Entities are first stored in a sync queue, then processed asynchronously.
 
-```typescript
-// convex/crons.ts
-import { cronJobs } from "convex/server";
-import { api } from "./_generated/api";
+### Event-driven mode (recommended)
 
-const crons = cronJobs();
+When `autoSyncEnabled` is true, each enqueue can bootstrap `processSyncQueue`.
+The processor runs in **drain mode**:
 
-crons.interval(
-  "process okrhub sync queue",
-  { minutes: 1 },
-  api.okrhub.processSyncQueue,
-  { batchSize: 50 }
-);
+- it keeps scheduling follow-up runs only while pending items exist;
+- it stops automatically when the queue is empty;
+- idle behavior is therefore **zero polling / zero periodic calls**.
 
-export default crons;
-```
-
-Or process manually:
+You can still trigger it manually:
 
 ```typescript
 // From Dashboard or action
@@ -379,6 +371,10 @@ await ctx.runAction(api.okrhub.processSyncQueue, {
   batchSize: 10,
 });
 ```
+
+### Legacy interval setting
+
+`syncIntervalMs` is kept for compatibility with older setups, but sync progression now prefers event-driven drain mode over periodic polling.
 
 ### Queue States
 
@@ -593,7 +589,8 @@ import { useQuery } from "convex/react";
 
 function MyComponent() {
   const { getPendingSyncItems } = useOKRHub();
-  const pendingItems = useQuery(getPendingSyncItems);
+  const isSyncPanelOpen = true;
+  const pendingItems = useQuery(getPendingSyncItems, isSyncPanelOpen ? {} : "skip");
   
   // Use pendingItems...
 }

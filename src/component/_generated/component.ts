@@ -1974,7 +1974,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           errorMessage?: string;
           externalId: string;
           lastAttemptAt?: number;
-          payload: string;
           status: string;
         }>,
         Name
@@ -2270,7 +2269,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             errorMessage?: string;
             externalId: string;
             lastAttemptAt?: number;
-            payload: string;
             status: string;
           }>,
           Name
@@ -2357,7 +2355,6 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             errorMessage?: string;
             externalId: string;
             lastAttemptAt?: number;
-            payload: string;
             status: string;
           }>,
           Name

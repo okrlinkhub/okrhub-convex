@@ -13,6 +13,8 @@ import { mutation, internalQuery } from "./_generated/server.js";
  * Upsert the component configuration.
  * Call this once during setup to store LinkHub connection details.
  * If config already exists, it will be updated.
+ * `syncIntervalMs` is kept for backward compatibility, but the sync engine
+ * now prefers event-driven drain mode (no periodic polling when idle).
  */
 export const configure = mutation({
   args: {
@@ -49,6 +51,7 @@ export const configure = mutation({
 /**
  * Internal query to read the stored configuration.
  * Used by processSyncQueue and other internal functions.
+ * Note: `syncIntervalMs` is legacy compatibility metadata.
  */
 export const getConfig = internalQuery({
   args: {},

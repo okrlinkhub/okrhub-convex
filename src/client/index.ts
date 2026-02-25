@@ -281,10 +281,11 @@ export function exposeApi(
     }),
 
     /**
-     * Start the auto-sync loop. Triggers one processSyncQueue run,
-     * which will self-schedule subsequent runs if autoSyncEnabled is true.
+     * Start event-driven sync. Triggers one processSyncQueue run.
+     * If autoSyncEnabled is true, the processor will continue only while
+     * there are pending items, then stop when the queue is empty.
      *
-     * Call once after configure() to kick off the sync loop.
+     * Call once after configure() to bootstrap the processor.
      */
     startSync: actionGeneric({
       args: {
@@ -307,7 +308,7 @@ export function exposeApi(
     /**
      * Process the sync queue manually.
      * Reads config from stored DB config, env vars, or getConfig option.
-     * If autoSyncEnabled, also self-schedules the next run.
+     * If autoSyncEnabled, follow-up runs happen only in drain mode.
      */
     processSyncQueue: actionGeneric({
       args: {
@@ -333,6 +334,10 @@ export function exposeApi(
     // =========================================================================
     // QUEUE QUERIES
     // =========================================================================
+    /**
+     * Read pending queue items for monitoring purposes.
+     * This query is lightweight and does not include payload bodies.
+     */
     getPendingSyncItems: queryGeneric({
       args: {
         limit: v.optional(v.number()),
